@@ -1,0 +1,31 @@
+:root {
+  color-scheme: light dark;
+  --ink: #1d2226;
+  --paper: #f4f6f7;
+  font-family: system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8ebed;
+    --paper: #1c2024;
+  }
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+}
+
+.note {
+  font-size: 0.9rem;
+}

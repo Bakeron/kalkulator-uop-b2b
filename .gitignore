@@ -1,0 +1,56 @@
+# Dependencies and build output (recreated by npm install / cargo build)
+node_modules/
+dist/
+dist-ssr/
+dist-demo/
+coverage/
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local files - never in the public repo (keys, local settings)
+*.local
+.env
+.env.*
+
+# Editors and system
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code - settings, skills, notes (a work tool, not part of the app)
+.claude/
+CLAUDE.local.md
+# Every .md file except README - notes, plans, CLAUDE.md stay only on the disk
+*.md
+!/README.md
+
+# Signing keys, passwords, service accounts
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+*.der
+*.crt
+HASLO*
+*haslo*
+*password*
+*secret*
+google-services.json
+GoogleService-Info.plist
+*service-account*.json
+*credentials*.json
+client_secret*.json
+
+# Memory dumps and repository copies
+*.dmp
+*.bundle
+*.orig
+*.bak

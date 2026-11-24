@@ -1,0 +1,351 @@
+{
+  "year": 2027,
+  "items": {
+    "accident": {
+      "value": 1.67,
+      "source": "rozporządzenie w sprawie stopy procentowej składki wypadkowej (Dz.U. 2025 poz. 1874)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1874/text.pdf",
+      "checked": "2026-11-24",
+      "status": "szacunek",
+      "note": "Pewne do 31.03.2027 (rok składkowy 04.2026-03.2027); od kwietnia brak nowego rozporządzenia - przyjęta ta sama stopa."
+    },
+    "authorsCostsLimit": {
+      "value": 120000,
+      "source": "ustawa o PIT art. 22 ust. 9a - górna granica pierwszego progu skali",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "pending": {
+        "value": 130000,
+        "source": "druk 3293 - pierwszy próg skali 130 000 zł",
+        "url": "https://api.sejm.gov.pl/sejm/term10/processes/3293",
+        "checked": "2026-11-24",
+        "status": "uchwalone"
+      }
+    },
+    "avgWageForecast": {
+      "value": 10033,
+      "source": "obwieszczenie MRPiPS z 3.11.2026 (M.P. 2026 poz. 1098)",
+      "url": "https://api.sejm.gov.pl/eli/acts/MP/2026/1098/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "disabilityEmployee": {
+      "value": 1.5,
+      "source": "ustawa o systemie ubezpieczeń społecznych art. 22 ust. 1 pkt 2, art. 16 ust. 1b (Dz.U. 2026 poz. 199)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/199/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "disabilityEmployer": {
+      "value": 6.5,
+      "source": "ustawa o systemie ubezpieczeń społecznych art. 22 ust. 1 pkt 2, art. 16 ust. 1b (Dz.U. 2026 poz. 199)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/199/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "employeeCosts": {
+      "value": 250,
+      "source": "ustawa o PIT art. 22 ust. 2 pkt 1 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Rocznie 3 000 zł, przy kilku umowach do 4 500 zł."
+    },
+    "employeeCostsCommuter": {
+      "value": 300,
+      "source": "ustawa o PIT art. 22 ust. 2 pkt 2 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Rocznie 3 600 zł, przy kilku umowach do 5 400 zł."
+    },
+    "fgsp": {
+      "value": 0.1,
+      "source": "projekt ustawy budżetowej na 2027, druk 3150, art. 27",
+      "url": "https://api.sejm.gov.pl/sejm/term10/prints/3150/3150-ustawa.docx",
+      "checked": "2026-11-24",
+      "status": "projekt",
+      "note": "Stawka taka sama jak w 2026."
+    },
+    "fullBase": {
+      "value": 6019.8,
+      "source": "ustawa o systemie ubezpieczeń społecznych art. 18 ust. 8 - 60% prognozowanego przeciętnego (M.P. 2026 poz. 1098)",
+      "url": "https://api.sejm.gov.pl/eli/acts/MP/2026/1098/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Wyliczone; ZUS jeszcze nie ogłosił kwot."
+    },
+    "health": {
+      "value": 9,
+      "source": "ustawa o świadczeniach opieki zdrowotnej art. 79 ust. 1 (Dz.U. 2025 poz. 1461)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1461/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "healthLinear": {
+      "value": 4.9,
+      "source": "ustawa o świadczeniach opieki zdrowotnej art. 79a ust. 1 (Dz.U. 2025 poz. 1461)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1461/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "healthMin": {
+      "value": 445.5,
+      "source": "ustawa o świadczeniach opieki zdrowotnej art. 79a, 81 ust. 2 - 9% płacy minimalnej 2027",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1213/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Od składki za luty 2027."
+    },
+    "healthMinJanuary": {
+      "value": 432.54,
+      "source": "ustawa o świadczeniach opieki zdrowotnej art. 81 ust. 2 - rok składkowy 02.2026-01.2027",
+      "url": "https://www.zus.pl/-/informacja-w-sprawie-podstawy-wymiaru-składki-oraz-kwoty-składki-na-ubezpieczenie-zdrowotne-w-2026-r.",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Składka za styczeń 2027 jeszcze według płacy minimalnej 2026."
+    },
+    "ipBoxRate": {
+      "value": 5,
+      "source": "ustawa o PIT art. 30ca ust. 1 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "laborFund": {
+      "value": 2.45,
+      "source": "projekt ustawy budżetowej na 2027, druk 3150, art. 25-26 (FP 1,00% + FS 1,45%)",
+      "url": "https://api.sejm.gov.pl/sejm/term10/prints/3150/3150-ustawa.docx",
+      "checked": "2026-11-24",
+      "status": "projekt",
+      "note": "Budżet 2027 jeszcze nieuchwalony; stawka taka sama jak w 2026."
+    },
+    "linearHealthDeductionLimit": {
+      "value": 15100,
+      "source": "obwieszczenie MFiG z 16.11.2026 (M.P. 2026 poz. 1163)",
+      "url": "https://api.sejm.gov.pl/eli/acts/MP/2026/1163/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "linearRate": {
+      "value": 19,
+      "source": "ustawa o PIT art. 30c ust. 1 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "minWage": {
+      "value": 4950,
+      "source": "rozporządzenie RM z 14.09.2026 (Dz.U. 2026 poz. 1213)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1213/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "pensionEmployee": {
+      "value": 9.76,
+      "source": "ustawa o systemie ubezpieczeń społecznych art. 22 ust. 1 pkt 1, art. 16 ust. 1 (Dz.U. 2026 poz. 199)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/199/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "pensionEmployer": {
+      "value": 9.76,
+      "source": "ustawa o systemie ubezpieczeń społecznych art. 22 ust. 1 pkt 1, art. 16 ust. 1 (Dz.U. 2026 poz. 199)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/199/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "pitScale": {
+      "value": [
+        [
+          120000,
+          12
+        ],
+        [
+          null,
+          32
+        ]
+      ],
+      "source": "ustawa o PIT art. 27 ust. 1 (Dz.U. 2026 poz. 592) - obecne prawo",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Zostaje, jeśli ustawa z druku 3293 nie wejdzie (weto).",
+      "pending": {
+        "value": [
+          [
+            130000,
+            12
+          ],
+          [
+            150000,
+            24
+          ],
+          [
+            null,
+            32
+          ]
+        ],
+        "source": "ustawa o zmianie ustaw o PIT, CIT i ryczałcie - druk 3293; Sejm 5.11.2026, Senat 6.11.2026 bez poprawek",
+        "url": "https://api.sejm.gov.pl/sejm/term10/processes/3293",
+        "checked": "2026-11-24",
+        "status": "uchwalone",
+        "note": "Czeka na decyzję prezydenta (termin 27.11.2026). Wchodzi tylko razem z CIT 22% i limitem ryczałtu 250 tys. euro."
+      }
+    },
+    "ppkEmployee": {
+      "value": 2,
+      "source": "ustawa o PPK art. 27 (Dz.U. 2026 poz. 192)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/192/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Można obniżyć do 0,5% przy wynagrodzeniu do 1,2 x płacy minimalnej."
+    },
+    "ppkEmployer": {
+      "value": 1.5,
+      "source": "ustawa o PPK art. 26 (Dz.U. 2026 poz. 192)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/192/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "preferentialBase": {
+      "value": 1485,
+      "source": "ustawa o systemie ubezpieczeń społecznych art. 18a ust. 1 - 30% płacy minimalnej 2027 (Dz.U. 2026 poz. 1213)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1213/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Wyliczone z płacy minimalnej; ZUS jeszcze nie ogłosił kwot."
+    },
+    "preferentialMonths": {
+      "value": 24,
+      "source": "ustawa o systemie ubezpieczeń społecznych art. 18a ust. 1 (Dz.U. 2026 poz. 199)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/199/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "ryczaltHealthAvgWage": {
+      "value": 9782.77,
+      "source": "szacunek: przeciętne wynagrodzenie III kw. 2026 (M.P. 2026 poz. 1032) x wzrost IV kw./III kw. 2025 (M.P. 2026 poz. 117, M.P. 2025 poz. 1118)",
+      "url": "https://api.sejm.gov.pl/eli/acts/MP/2026/1032/text.pdf",
+      "checked": "2026-11-24",
+      "status": "szacunek",
+      "note": "GUS poda dokładną kwotę ok. 20-22.01.2027; spodziewane odchylenie składki kilka-kilkanaście zł miesięcznie."
+    },
+    "ryczaltHealthThresholds": {
+      "value": [
+        60000,
+        300000
+      ],
+      "source": "ustawa o świadczeniach opieki zdrowotnej art. 81 ust. 2e-2f (Dz.U. 2025 poz. 1461)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/1461/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Podstawa: 60% / 100% / 180% przeciętnego wynagrodzenia z IV kwartału poprzedniego roku."
+    },
+    "ryczaltItRate": {
+      "value": 12,
+      "source": "ustawa o zryczałtowanym podatku dochodowym art. 12 ust. 1 pkt 2b (Dz.U. 2025 poz. 843)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2025/843/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "ryczaltLimit": {
+      "value": 8754000,
+      "source": "ustawa o ryczałcie art. 6 ust. 4 - 2 000 000 euro po kursie NBP 4,3770 z 1.10.2026",
+      "url": "https://api.nbp.pl/api/exchangerates/rates/a/eur/2026-10-01/?format=json",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Obecne prawo.",
+      "pending": {
+        "value": 1094250,
+        "source": "druk 3293 - 250 000 euro po kursie NBP 4,3770 z 1.10.2026",
+        "url": "https://api.sejm.gov.pl/sejm/term10/processes/3293",
+        "checked": "2026-11-24",
+        "status": "uchwalone",
+        "note": "Liczy się przychód z 2026."
+      }
+    },
+    "sickPayEmployerDays": {
+      "value": 33,
+      "source": "Kodeks pracy art. 92 § 1 (Dz.U. 2026 poz. 1245)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1245/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "sickPayEmployerDaysOver50": {
+      "value": 14,
+      "source": "Kodeks pracy art. 92 § 1 (Dz.U. 2026 poz. 1245)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1245/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Od roku kalendarzowego po 50. urodzinach."
+    },
+    "sickness": {
+      "value": 2.45,
+      "source": "ustawa o systemie ubezpieczeń społecznych art. 22 ust. 1 pkt 3 (Dz.U. 2026 poz. 199)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/199/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "smallZusRevenueLimit": {
+      "value": 120000,
+      "source": "ustawa o systemie ubezpieczeń społecznych art. 18c ust. 1 (Dz.U. 2026 poz. 199)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/199/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Przychód z poprzedniego roku; najwyżej 36 miesięcy w każdych 60 miesiącach działalności."
+    },
+    "startReliefMonths": {
+      "value": 6,
+      "source": "Prawo przedsiębiorców art. 18 ust. 1 (Dz.U. 2026 poz. 1484)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1484/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "taxReduction": {
+      "value": 3600,
+      "source": "ustawa o PIT art. 27 ust. 1 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Miesięcznie 1/12 = 300 zł (PIT-2)."
+    },
+    "vatExemptLimit": {
+      "value": 240000,
+      "source": "ustawa o VAT art. 113 ust. 1 (Dz.U. 2026 poz. 1263; zmiana Dz.U. 2025 poz. 896 od 1.01.2026)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1263/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "vatRate": {
+      "value": 23,
+      "source": "ustawa o VAT art. 146ef (Dz.U. 2026 poz. 1263)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1263/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "23% obowiązuje, dopóki wydatki na obronę przekraczają 3% PKB."
+    },
+    "voluntarySicknessWaitDays": {
+      "value": 90,
+      "source": "ustawa zasiłkowa art. 4 ust. 1 pkt 2 (Dz.U. 2026 poz. 854)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/854/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "zeroPitLimit": {
+      "value": 85528,
+      "source": "ustawa o PIT art. 21 ust. 1 pkt 148, 152-154 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "zusAnnualLimit": {
+      "value": 300990,
+      "source": "obwieszczenie MRPiPS z 3.11.2026 (M.P. 2026 poz. 1098)",
+      "url": "https://api.sejm.gov.pl/eli/acts/MP/2026/1098/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    }
+  }
+}
