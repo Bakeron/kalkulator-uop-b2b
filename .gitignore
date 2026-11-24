@@ -6,6 +6,12 @@ dist-demo/
 coverage/
 src-tauri/target/
 src-tauri/gen/schemas/
+# Output of `tsc -b` (the configs are TypeScript; a stray vite.config.js would shadow vite.config.ts)
+*.tsbuildinfo
+/vite.config.js
+/vite.config.d.ts
+/vitest.config.js
+/vitest.config.d.ts
 
 # Logs
 *.log
@@ -43,6 +49,8 @@ HASLO*
 *haslo*
 *password*
 *secret*
+# ...but the code that keeps the key in the system vault is source, not a secret
+!/src-tauri/src/secrets.rs
 google-services.json
 GoogleService-Info.plist
 *service-account*.json
@@ -54,3 +62,6 @@ client_secret*.json
 *.bundle
 *.orig
 *.bak
+
+# Android installers (scripts/android-build.ps1) - built locally, not source
+/apk/

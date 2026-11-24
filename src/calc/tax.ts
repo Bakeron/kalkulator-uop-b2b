@@ -28,11 +28,12 @@ export function annualScaleTax(income: Money, rates: Rates): Money {
 /**
  * Monthly income tax advance of an employee (art. 32): the scale applied to this month's tax base
  * on top of the year-to-date bases (so the higher rate starts in the month the threshold is
- * crossed), minus 1/12 of the tax-reducing amount (PIT-2 filed), rounded to full złoty, never
- * below zero.
+ * crossed), minus 1/12 of the tax-reducing amount when PIT-2 is filed with this employer, rounded
+ * to full złoty, never below zero.
  */
-export function monthlyAdvance(base: Money, baseBefore: Money, rates: Rates): Money {
+export function monthlyAdvance(base: Money, baseBefore: Money, rates: Rates, pit2 = true): Money {
   if (base <= 0) return 0;
   const tax = scaleTax(baseBefore + base, rates.pitScale) - scaleTax(baseBefore, rates.pitScale);
-  return Math.max(0, toFullZl(tax - Math.round(rates.taxReduction / 12)));
+  const reduction = pit2 ? Math.round(rates.taxReduction / 12) : 0;
+  return Math.max(0, toFullZl(tax - reduction));
 }

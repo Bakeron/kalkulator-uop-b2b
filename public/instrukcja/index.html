@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Kalkulator UoP i B2B - instrukcja</title>
+<meta name="description" content="Instrukcja Kalkulatora UoP i B2B krok po kroku, ze zrzutami ekranu.">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="instrukcja.css">
+</head>
+<body>
+<div class="page">
+
+<p><a href="../">Wróć do kalkulatora</a></p>
+
+<h1>Kalkulator UoP i B2B - instrukcja</h1>
+<p class="lead">Kalkulator porównuje umowę o pracę z B2B. Pokazuje, ile naprawdę zostaje na rękę po uwzględnieniu urlopu, chorobowego, ZUS-u i podatku, a przy każdej kwocie wyjaśnia, skąd się wzięła.</p>
+<p class="note">Zrzuty pochodzą z wersji demonstracyjnej i pokazują przykładowe kwoty. Czerwone numery na zrzutach odpowiadają numerom w opisie pod nimi. To symulacja, nie porada podatkowa - przed decyzją warto sprawdzić wynik z księgowym.</p>
+
+<nav class="toc" aria-label="Spis treści">
+<ol>
+  <li><a href="#pierwsze-kroki">Pierwsze kroki</a></li>
+  <li><a href="#ekran-glowny">Ekran główny</a></li>
+  <li><a href="#dymki">Dymki „?”</a></li>
+  <li><a href="#suwak">Suwak - dwie podziałki</a></li>
+  <li><a href="#skad-te-kwoty">Skąd te kwoty</a></li>
+  <li><a href="#inna-stawka">Przy innej stawce B2B</a></li>
+  <li><a href="#miesiace">Miesiąc po miesiącu i zmiany przepisów</a></li>
+  <li><a href="#zalozenia">Założenia</a></li>
+  <li><a href="#zapisz">Zapisz i udostępnij</a></li>
+  <li><a href="#rok">Rok na miarce</a></li>
+  <li><a href="#wiedza">Co warto wiedzieć</a></li>
+  <li><a href="#zrodla">Źródła i „Odśwież”</a></li>
+  <li><a href="#ai">Sprawdź przepisy z AI</a></li>
+  <li><a href="#wyglad">Wygląd, waluta i animacje</a></li>
+  <li><a href="#telefon">Na telefonie</a></li>
+  <li><a href="#prywatnosc">Prywatność</a></li>
+</ol>
+</nav>
+
+<h2 id="pierwsze-kroki">Pierwsze kroki</h2>
+<p>Przy pierwszym uruchomieniu kalkulator pokazuje 5 krótkich notatek. Każda wskazuje jedną część ekranu czerwonymi narożnikami, jak szczegół na rysunku technicznym.</p>
+<ul>
+  <li><strong>Dalej</strong> i <strong>Wstecz</strong> przechodzą między notatkami. Na klawiaturze działają też strzałki w prawo i w lewo.</li>
+  <li><strong>Pomiń</strong> albo klawisz Esc zamyka notatki od razu. Na telefonie zamyka je też przycisk „Wstecz”.</li>
+  <li>Notatki można obejrzeć jeszcze raz przyciskiem <strong>Pokaż pierwsze kroki</strong> na dole strony, obok odnośnika do tej instrukcji.</li>
+</ul>
+<p class="note">Aplikacja na komputerze pamięta, że notatki zostały obejrzane. Wersja demonstracyjna niczego nie zapisuje, więc pokazuje je przy każdym otwarciu.</p>
+<div class="pair">
+  <figure>
+    <img src="zrzuty/pc-pierwsze-kroki.png" width="1280" height="900" alt="Pierwsza notatka „Wpisz dwie oferty” pod polami z kwotami, pole otoczone czerwonymi narożnikami." loading="lazy">
+    <figcaption>Pierwsza notatka na komputerze.</figcaption>
+  </figure>
+  <figure class="phone">
+    <img src="zrzuty/tel-pierwsze-kroki.png" width="400" height="860" alt="Ta sama notatka na wąskim ekranie telefonu." loading="lazy">
+    <figcaption>Ta sama notatka na telefonie.</figcaption>
+  </figure>
+</div>
+
+<h2 id="ekran-glowny">Ekran główny</h2>
+<p>Wystarczą dwie kwoty. Wszystko inne ma rozsądne wartości domyślne, więc wynik jest dokładny od pierwszej sekundy i zmienia się przy każdej zmianie, bez przycisku „Oblicz”.</p>
+<figure>
+  <img src="zrzuty/pc-ekran-glowny.png" width="1280" height="900" alt="Ekran główny z ponumerowanymi częściami od 1 do 9." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Umowa o pracę - brutto miesięcznie.</strong> Kwota z umowy, przed składkami i podatkiem.</li>
+  <li><strong>B2B - netto na fakturze miesięcznie.</strong> Stawka bez VAT. Obok można wybrać walutę stawki: złote, euro albo dolary. Kwota w obcej walucie jest przeliczana po średnim kursie NBP, a pod polem widać wynik w złotych i datę kursu.</li>
+  <li><strong>Według jakich przepisów liczyć.</strong> „Przepisy na dziś” to ustawienie domyślne. Dwa pozostałe przyciski liczą według przepisów od 1 stycznia następnego roku - same pewne zmiany albo razem z projektami ustaw. Gdy wybrany jest inny wariant niż „na dziś”, nad wynikiem pojawia się wyraźny napis i przycisk powrotu.</li>
+  <li><strong>Zakładki.</strong> „Porównanie”, „Rok”, „Co warto wiedzieć” i „Źródła”. Między zakładkami można przechodzić strzałkami na klawiaturze.</li>
+  <li><strong>Odpowiedź.</strong> Jedno zdanie mówi, która oferta daje więcej na rękę i o ile miesięcznie. Pod nim jest kwota, którą trzeba wziąć na B2B, żeby wyjść tak samo, oraz ile brutto na umowie o pracę jest warta oferta B2B.</li>
+  <li><strong>Suwak.</strong> Dwie podziałki do sprawdzania innych kwot (opis niżej).</li>
+  <li><strong>Założenia.</strong> Urlop, choroba, podatek, ZUS i koszty firmy zapisane zdaniami. Kliknięcie zdania rozwija jego pola.</li>
+  <li><strong>Waluta wyników.</strong> Wyniki można pokazać w złotych, euro albo dolarach. Obliczenia zawsze idą w złotych, bo w złotych są podatki i ZUS.</li>
+  <li><strong>Sprawdź przepisy z AI.</strong> Okno, w którym Claude sprawdza, czy kwoty w kalkulatorze są aktualne (opis niżej).</li>
+</ol>
+
+<h2 id="dymki">Dymki „?”</h2>
+<p>Przy prawie każdym pojęciu jest znak „?”. Na komputerze wystarczy najechać na niego myszą, na telefonie stuknąć. Kliknięcie przypina dymek, a drugie kliknięcie albo Esc go chowa.</p>
+<figure>
+  <img src="zrzuty/pc-dymek.png" width="1280" height="900" alt="Otwarty dymek z wyjaśnieniem pojęcia brutto i odnośnikiem do Kodeksu pracy." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Znak „?”</strong> przy polu z kwotą brutto. Dymek wyjaśnia pojęcie prostym językiem.</li>
+  <li><strong>Przeczytaj więcej.</strong> Większość dymków kończy się odnośnikiem do przepisu albo strony urzędu.</li>
+</ol>
+
+<h2 id="suwak">Suwak - dwie podziałki</h2>
+<p>Górna podziałka to umowa o pracę brutto, dolna to B2B netto na fakturze. Kwoty, które dają tyle samo na rękę, stoją dokładnie naprzeciw siebie. Dzięki temu jednym ruchem widać, ile trzeba wziąć na B2B przy innej pensji, i odwrotnie.</p>
+<figure>
+  <img src="zrzuty/pc-suwak.png" width="1280" height="900" alt="Suwak z czerwoną kreską, kwotą umowy o pracę, równoważną kwotą B2B i znacznikiem oferty B2B." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Kwota umowy o pracę</strong> w miejscu czerwonej kreski.</li>
+  <li><strong>Czerwona kreska.</strong> Przesuwa się myszą, palcem albo strzałkami na klawiaturze (Page Up i Page Down robią większe kroki). Razem z nią zmienia się kwota umowy o pracę w polu po lewej.</li>
+  <li><strong>Ile na B2B daje tyle samo na rękę.</strong> Kwota na dolnej podziałce naprzeciw kreski.</li>
+  <li><strong>Oferta B2B.</strong> Trójkąt pokazuje wpisaną stawkę B2B. Też da się go przesunąć.</li>
+  <li><strong>Różnica</strong> między ofertą B2B a kwotą, która daje tyle samo co umowa o pracę.</li>
+</ol>
+
+<h2 id="skad-te-kwoty">Skąd te kwoty</h2>
+<p>Pod suwakiem obie umowy są rozpisane jak wymiary na rysunku technicznym. Każda część pensji ma nazwę, kwotę i własny odcinek: składki na ZUS, składka zdrowotna, podatek, PPK albo koszty firmy i na końcu „na rękę”.</p>
+<figure>
+  <img src="zrzuty/pc-skad-te-kwoty.png" width="1280" height="900" alt="Rozbicie umowy o pracę z rozwiniętym wyjaśnieniem składek na ZUS." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Umowa, której dotyczy rozbicie.</strong> Niżej jest takie samo rozbicie dla B2B, w wybranej albo najkorzystniejszej formie podatku.</li>
+  <li><strong>Część pensji.</strong> Kliknięcie nazwy rozwija wyjaśnienie.</li>
+  <li><strong>Wyjaśnienie</strong> - kto płaci, komu, do kiedy i na podstawie jakiego przepisu.</li>
+</ol>
+<p class="note">Kwoty są średnimi miesięcznymi z całego roku, z urlopem i chorobą. Dlatego brutto średnio bywa niższe niż w umowie - za dni choroby pracodawca płaci 80%.</p>
+
+<h2 id="inna-stawka">Przy innej stawce B2B</h2>
+<p>Wykres pokazuje, o ile B2B daje więcej albo mniej na rękę niż ta sama umowa o pracę, gdyby stawka B2B była inna. Wszystkie założenia zostają te same.</p>
+<figure>
+  <img src="zrzuty/pc-wykres-i-miesiace.png" width="1280" height="900" alt="Wykres różnicy na rękę w zależności od stawki B2B, z czerwoną linią punktu równowagi." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Odczyt.</strong> Zdanie mówi, ile daje B2B przy wskazanej stawce i która forma podatku jest wtedy najkorzystniejsza.</li>
+  <li><strong>Wykres.</strong> Po najechaniu myszą odczyt pokazuje stawkę pod kursorem. Na klawiaturze stawkę zmieniają strzałki. Czerwona linia to stawka, przy której obie umowy dają tyle samo.</li>
+  <li><strong>Te same liczby w tabeli</strong> - dla osób, które wolą tabelę albo korzystają z czytnika ekranu.</li>
+</ol>
+
+<h2 id="miesiace">Miesiąc po miesiącu i zmiany przepisów</h2>
+<p>Tabela pokazuje, ile wpływa na konto w każdym miesiącu roku. Miesiące różnią się, bo na B2B za urlop i chorobę nie ma faktury, a na umowie o pracę za chorobę jest 80% pensji.</p>
+<figure>
+  <img src="zrzuty/pc-miesiac-po-miesiacu.png" width="1280" height="900" alt="Tabela 12 miesięcy z kwotami obu umów i różnicą oraz nagłówek „Co się zmieni i kiedy”." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Tabela miesięcy.</strong> Kolumna „Dlaczego inaczej” podaje powód innej kwoty, na przykład urlop albo chorobę. Na dole jest rozliczenie roczne (zwrot albo dopłata wiosną następnego roku) i suma za rok.</li>
+  <li><strong>Co się zmieni i kiedy.</strong> Lista zmian przepisów od 1 stycznia następnego roku. Przy każdej widać, czy jest pewna, czy czeka na podpis, i czy wynik ją teraz uwzględnia.</li>
+</ol>
+
+<h2 id="zalozenia">Założenia</h2>
+<p>Wszystkie ustawienia są zapisane zdaniami, które mówią, co przyjęto. Kliknięcie zdania płynnie rozwija pola tej grupy. Grupa ze zmienionymi wartościami ma napis „zmienione” i przycisk przywrócenia wartości domyślnych.</p>
+<figure>
+  <img src="zrzuty/pc-zalozenia.png" width="1280" height="900" alt="Rozwinięta grupa założeń umowy o pracę z polami PPK, kosztów autorskich i benefitów." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Wartości domyślne.</strong> Kto nie chce niczego zmieniać, może tę część pominąć.</li>
+  <li><strong>Rozwinięta grupa</strong> - tu umowa o pracę: PPK, dojazdy z innej miejscowości, koszty autorskie 50%, zerowy PIT i benefity.</li>
+  <li><strong>Następna grupa</strong> - B2B: forma podatku, data założenia firmy i etap ZUS, dobrowolne chorobowe.</li>
+</ol>
+<p>Pozostałe grupy to koszty firmy, VAT, urlop i choroba, rozliczenie roczne (wspólnie z małżonkiem, ulga na dzieci) oraz inne umowy, na przykład druga umowa o pracę, zlecenie albo dzieło obok oferty.</p>
+
+<h2 id="zapisz">Zapisz i udostępnij</h2>
+<figure>
+  <img src="zrzuty/pc-zapisz-i-udostepnij.png" width="1280" height="900" alt="Przyciski Pobierz PDF, Kopiuj link i pole do zapisania scenariusza." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Pobierz PDF</strong> - rozbicie obu umów, tabela 12 miesięcy, założenia i data przepisów.</li>
+  <li><strong>Kopiuj link</strong> - adres, który otwiera kalkulator z tymi samymi danymi. Kwoty są w samym linku, nie na serwerze.</li>
+  <li><strong>Zapisz</strong> - zapisuje obecne dane pod wpisaną nazwą, na przykład „Oferta z banku”, żeby później wrócić do nich jednym kliknięciem.</li>
+</ol>
+<p class="note">W wersji demonstracyjnej zapisane scenariusze znikają po zamknięciu strony. W aplikacji zostają na urządzeniu.</p>
+
+<h2 id="rok">Rok na miarce</h2>
+<p>Zakładka „Rok” pokazuje 12 miesięcy jako odcinki miarki. Górna taśma to umowa o pracę, dolna to B2B. Widać na niej, ile dni pracy, urlopu i choroby ma każdy miesiąc i ile taśmy B2B jest „uciętej”, bo za te dni nie ma faktury.</p>
+<figure>
+  <img src="zrzuty/pc-rok.png" width="1280" height="900" alt="Zakładka Rok z 12 miesiącami na miarce i legendą oznaczeń." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Oznaczenia</strong> - praca, urlop, choroba i dzień bez faktury. Linia ciągła to umowa o pracę, przerywana to B2B.</li>
+  <li><strong>Terminy płatności</strong> - co miesiąc i raz w roku: kto płaci ZUS, zaliczkę na podatek i zdrowotną, komu i do którego dnia.</li>
+</ol>
+
+<h2 id="wiedza">Co warto wiedzieć</h2>
+<p>Przewodnik po obu umowach, podzielony na rozdziały: formy opodatkowania, ZUS na B2B, VAT, księgowość, pułapki, założenie firmy i umowa o pracę. Przy każdym punkcie jest źródło.</p>
+<figure>
+  <img src="zrzuty/pc-co-warto-wiedziec.png" width="1280" height="900" alt="Zakładka Co warto wiedzieć ze spisem rozdziałów." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Rozdziały.</strong> Kliknięcie przenosi do rozdziału.</li>
+</ol>
+
+<h2 id="zrodla">Źródła i „Odśwież”</h2>
+<p>Każda liczba w obliczeniach ma źródło (rozporządzenie, obwieszczenie, ustawę) i datę sprawdzenia.</p>
+<figure>
+  <img src="zrzuty/pc-zrodla.png" width="1280" height="900" alt="Zakładka Źródła z przyciskiem Odśwież i listą liczb ze źródłami." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Odśwież</strong> pobiera tylko dane publiczne: nowszy plik stawek z repozytorium projektu, listę nowych aktów prawnych z API Sejmu i kurs NBP. Gdy od daty sprawdzenia stawek ukazały się nowe akty o podatkach albo ZUS, pojawia się ich lista z odnośnikami.</li>
+  <li><strong>Liczby w obliczeniach</strong> - każda z odnośnikiem i informacją, czy jest pewna, czy to szacunek.</li>
+</ol>
+
+<h2 id="ai">Sprawdź przepisy z AI</h2>
+<p>Claude Sonnet z wyszukiwaniem w sieci sprawdza, czy kwoty i daty w kalkulatorze są aktualne. Każdą proponowaną zmianę pokazuje jako „było - jest” ze źródłem i cytatem. Nic nie zmienia się samo: zmianę trzeba zatwierdzić przyciskiem „Zastosuj”, a „Przywróć dane z pliku” cofa wszystkie.</p>
+<figure>
+  <img src="zrzuty/pc-ai.png" width="1280" height="900" alt="Okno Sprawdź przepisy z AI z informacją, że w wersji demonstracyjnej nie działa." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Okno sprawdzania.</strong> W wersji demonstracyjnej nie działa. W aplikacji na komputerze trzeba wkleić własny klucz API Anthropic - trafia do sejfu systemu, a na ekranie widać tylko jego końcówkę.</li>
+</ol>
+<ul>
+  <li>Sprawdzenie zawsze zaczyna się od kliknięcia, nigdy samo.</li>
+  <li>Dzienny limit wydatków ustawia się w dolarach (domyślnie 1 $). Okno pokazuje, ile wydano dziś, także w złotych po kursie NBP. To szacunek liczony przez aplikację.</li>
+  <li>Do Anthropic trafiają tylko obecne stawki i lista nowych aktów, nigdy kwoty wpisane w kalkulatorze.</li>
+</ul>
+
+<h2 id="wyglad">Wygląd, waluta i animacje</h2>
+<figure>
+  <img src="zrzuty/pc-ciemny.png" width="1280" height="900" alt="Kalkulator w trybie ciemnym." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Jasny, Ciemny albo Jak w systemie.</strong> „Jak w systemie” zmienia wygląd razem z ustawieniem Windows albo telefonu. Na zrzucie system jest w trybie ciemnym.</li>
+</ol>
+<p>Obok jest przycisk <strong>Ogranicz animacje</strong>. Po jego włączeniu kwoty i dymki zmieniają się od razu, bez ruchu. Kalkulator bierze też pod uwagę takie ustawienie w systemie.</p>
+
+<h2 id="telefon">Na telefonie</h2>
+<p>Na wąskim ekranie wszystko układa się w jedną kolumnę. Najpierw są dwie kwoty, potem wynik, a niżej założenia.</p>
+<figure class="phone">
+  <img src="zrzuty/tel-ekran-glowny.png" width="400" height="860" alt="Kalkulator na telefonie z paskiem wyniku przyklejonym na dole." loading="lazy">
+</figure>
+<ol class="marks">
+  <li><strong>Umowa o pracę - brutto miesięcznie.</strong></li>
+  <li><strong>B2B - netto na fakturze miesięcznie.</strong></li>
+  <li><strong>Pasek wyniku</strong> zawsze widoczny na dole. Po każdej zmianie od razu pokazuje, o ile B2B daje więcej albo mniej na rękę.</li>
+</ol>
+
+<h2 id="prywatnosc">Prywatność</h2>
+<p>Żadne wpisane kwoty nie wychodzą z urządzenia. Kalkulator nie ma analityki ani reklam. Jedyne połączenia z siecią to „Odśwież” (dane publiczne) i, w aplikacji na komputerze, „Sprawdź przepisy z AI” z własnym kluczem użytkownika.</p>
+
+<p class="foot">Kalkulator UoP i B2B - instrukcja. Zrzuty ekranu robi automat z wersji demonstracyjnej, więc zgadzają się z obecnym wyglądem aplikacji. <a href="../">Wróć do kalkulatora</a></p>
+
+</div>
+</body>
+</html>

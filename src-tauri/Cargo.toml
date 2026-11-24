@@ -19,6 +19,23 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# The API key lives in the OS credential store (Windows Credential Manager, Android Keystore)
+keyring-core = "1.0.1"
+reqwest = { version = "0.13.5", default-features = false, features = ["json", "gzip", "charset", "http2"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-native-keyring-store = "1.1.0"
+
+# TLS on the PC: the system's own (Schannel on Windows)
+[target.'cfg(not(target_os = "android"))'.dependencies]
+reqwest = { version = "0.13.5", default-features = false, features = ["native-tls"] }
+
+# TLS on Android: rustls with the ring provider and Mozilla's root list (tls.rs)
+[target.'cfg(target_os = "android")'.dependencies]
+android-native-keyring-store = "1.0.0"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider"] }
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+webpki-roots = "1"
 
 # https://tauri.app/concept/size/#cargo-configuration
 [profile.release]

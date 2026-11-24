@@ -23,6 +23,58 @@
       "checked": "2026-11-24",
       "status": "pewne"
     },
+    "carCostShare": {
+      "value": 75,
+      "source": "ustawa o PIT art. 23 ust. 1 pkt 46a - auto firmowe używane też prywatnie: 75% wydatków w kosztach",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "carVatShare": {
+      "value": 50,
+      "source": "ustawa o VAT art. 86a ust. 1 - auto używane też prywatnie: odliczasz 50% VAT",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/1263/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "100% tylko przy aucie wyłącznie firmowym (VAT-26 i ewidencja przebiegu)."
+    },
+    "childRelief": {
+      "value": [
+        1112.04,
+        1112.04,
+        2000.04,
+        2700
+      ],
+      "source": "ustawa o PIT art. 27f ust. 1 pkt 2 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Miesięcznie 92,67 zł na 1. i 2. dziecko, 166,67 zł na 3., 225 zł na 4. i każde następne."
+    },
+    "childReliefIncomeLimitMarried": {
+      "value": 112000,
+      "source": "ustawa o PIT art. 27f ust. 1 pkt 1 lit. a (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Tylko przy jednym dziecku: dochody małżonków razem (skala i liniowy) najwyżej 112 000 zł."
+    },
+    "childReliefIncomeLimitSingle": {
+      "value": 56000,
+      "source": "ustawa o PIT art. 27f ust. 1 pkt 1 lit. b (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Tylko przy jednym dziecku, gdy nie pozostajesz w związku małżeńskim: dochód najwyżej 56 000 zł (samotny rodzic - 112 000 zł)."
+    },
+    "civilCostsRate": {
+      "value": 20,
+      "source": "ustawa o PIT art. 22 ust. 9 pkt 4 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Umowa zlecenie i o dzieło: 20% przychodu po odjęciu składek społecznych; przy prawach autorskich 50% (art. 22 ust. 9 pkt 3)."
+    },
     "disabilityEmployee": {
       "value": 1.5,
       "source": "ustawa o systemie ubezpieczeń społecznych art. 22 ust. 1 pkt 2, art. 16 ust. 1b (Dz.U. 2026 poz. 199)",
@@ -47,16 +99,39 @@
     },
     "employeeCostsCommuter": {
       "value": 300,
-      "source": "ustawa o PIT art. 22 ust. 2 pkt 2 (Dz.U. 2026 poz. 592)",
+      "source": "ustawa o PIT art. 22 ust. 2 pkt 3 (Dz.U. 2026 poz. 592)",
       "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
       "checked": "2026-11-24",
       "status": "pewne",
       "note": "Rocznie 3 600 zł, przy kilku umowach do 5 400 zł."
     },
+    "employeeCostsMultiLimit": {
+      "value": 4500,
+      "source": "ustawa o PIT art. 22 ust. 2 pkt 2 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Kilka umów o pracę: po 250 zł miesięcznie u każdego pracodawcy, w zeznaniu rocznym razem najwyżej 4 500 zł."
+    },
+    "employeeCostsMultiLimitCommuter": {
+      "value": 5400,
+      "source": "ustawa o PIT art. 22 ust. 2 pkt 4 (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Kilka umów o pracę i dojazd z innej miejscowości: razem najwyżej 5 400 zł w roku."
+    },
     "fgsp": {
       "value": 0.1,
       "source": "ustawa budżetowa na 2026 art. 27 (Dz.U. 2026 poz. 62)",
       "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/62/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne"
+    },
+    "fixedAssetLimit": {
+      "value": 10000,
+      "source": "ustawa o PIT art. 22d ust. 1 - sprzęt do 10 000 zł netto można od razu wpisać w koszty, droższy się amortyzuje",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
       "checked": "2026-11-24",
       "status": "pewne"
     },
@@ -247,6 +322,14 @@
       "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/199/text.pdf",
       "checked": "2026-11-24",
       "status": "pewne"
+    },
+    "smallContractLimit": {
+      "value": 200,
+      "source": "ustawa o PIT art. 30 ust. 1 pkt 5a (Dz.U. 2026 poz. 592)",
+      "url": "https://api.sejm.gov.pl/eli/acts/DU/2026/592/text.pdf",
+      "checked": "2026-11-24",
+      "status": "pewne",
+      "note": "Umowa do 200 zł miesięcznie z kimś, kto nie jest Twoim pracodawcą: zryczałtowany podatek 12%, nie wchodzi do zeznania rocznego."
     },
     "smallZusRevenueLimit": {
       "value": 120000,

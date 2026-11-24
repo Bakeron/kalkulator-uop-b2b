@@ -46,9 +46,23 @@ jobs:
       - name: Types
         run: npx tsc --noEmit
 
+      # The daily act check (nowe-akty.yml) - pure functions, no network.
+      - name: Act check tests
+        run: node --test "scripts/*.test.mjs"
+
+      # The look ban list and legibility (assumption A7) in Chrome, both themes, PC and phone width.
+      - name: Look check
+        run: npm run test:look
+
       # generate_context! in the Rust build needs the built interface to exist.
       - name: Build the interface
         run: npx vite build
+
+      # The website demo: _headers and index.html checked against its CSP (wrong header = white page).
+      - name: Demo build and headers
+        run: |
+          npx vite build --mode demo --outDir dist-demo
+          node scripts/check-demo.mjs dist-demo
 
       - name: Current Rust
         run: |

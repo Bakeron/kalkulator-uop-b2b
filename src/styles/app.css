@@ -1,31 +1,2542 @@
+/*
+ * Look a) - the slide rule and the technical drawing (assumption A8): light anodised aluminium,
+ * graphite ink, one accent - the red of the slide rule hairline, only for what moves and for the
+ * result. Contrast checked for both themes (text at least 4.5:1, lines at least 3:1).
+ */
+@font-face {
+  font-family: "osifont";
+  src: url("../assets/fonts/osifont-lgpl3fe.woff") format("woff");
+  font-display: swap;
+}
+
+/*
+ * Until Atkinson Hyperlegible Next arrives (the demo on a slow network), Arial stretched to its
+ * widths and line metrics - so the text wraps the same and nothing jumps when the font swaps
+ * (layout shift). Widths measured on Polish sample text from the font files: 400 = 98.42%,
+ * 700 = 99.61% of Arial; ascent 0.984 and descent 0.316 em divided by the size-adjust.
+ */
+@font-face {
+  font-family: "Atkinson fallback";
+  src: local("Arial"), local("ArialMT");
+  font-weight: 400;
+  size-adjust: 98.42%;
+  ascent-override: 99.98%;
+  descent-override: 32.11%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Atkinson fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT");
+  font-weight: 700;
+  size-adjust: 99.61%;
+  ascent-override: 98.79%;
+  descent-override: 31.72%;
+  line-gap-override: 0%;
+}
+
 :root {
-  color-scheme: light dark;
-  --ink: #1d2226;
-  --paper: #f4f6f7;
-  font-family: system-ui, sans-serif;
+  color-scheme: light;
+  --bg: #eef0f1;
+  --slide: #dde2e5;
+  --ink: #1c2125;
+  --ink-2: #475057;
+  --line: #5d666d;
+  --red: #b01e28;
+  --hatch: rgb(176 30 40 / 0.35);
+  --text-col: 17rem;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t: 220ms;
+  font-family: "Atkinson Hyperlegible Next", "Atkinson fallback", sans-serif;
   font-size: 1rem;
   line-height: 1.5;
+  font-variant-numeric: tabular-nums;
   color: var(--ink);
-  background: var(--paper);
+  background: var(--bg);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #181c1f;
+  --slide: #252b30;
+  --ink: #e7eaec;
+  --ink-2: #aab3b9;
+  --line: #87919a;
+  --red: #ff7d70;
+  --hatch: rgb(255 125 112 / 0.35);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --ink: #e8ebed;
-    --paper: #1c2024;
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #181c1f;
+    --slide: #252b30;
+    --ink: #e7eaec;
+    --ink-2: #aab3b9;
+    --line: #87919a;
+    --red: #ff7d70;
+    --hatch: rgb(255 125 112 / 0.35);
   }
+}
+
+/* "Ogranicz animacje": the choice in the app (data-motion) wins over the system setting. */
+:root[data-motion="reduce"] {
+  --t: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) {
+    --t: 0ms;
+  }
+}
+
+/* Theme switch: the whole page cross-fades (ui/motion.ts), as short as the other movements. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--t);
+  animation-timing-function: var(--ease);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  transition:
+    background-color var(--t) var(--ease),
+    color var(--t) var(--ease);
+  background: var(--bg);
 }
 
-.app {
-  max-width: 44rem;
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+/* Hidden stays hidden, also where a class sets display (the phone's screens, the docked answer). */
+[hidden] {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Page: an application window, not a web page (plan A27). The window itself never scrolls - only
+   the left column and the area under the result's tabs scroll inside, each on its own. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  max-width: 90rem;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 30rem;
   margin: 0 auto;
-  padding: 2rem 1.25rem;
+  padding: 0 1.5rem;
 }
 
-.note {
+.page > * {
+  flex: none;
+}
+
+/* A scrolled area: its own scrollbar with a fixed gutter (the text does not move when it comes),
+   room for the focus outline at the edges, the scroll not passed on to the window. */
+.side,
+.screen {
+  /* The containing block of what is placed absolutely inside (the hidden legends), so nothing
+     sticks out of the scrolled area and makes the window scroll. */
+  position: relative;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  padding: 0 0.75rem 2rem 4px;
+  margin-left: -4px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.top__name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.theme {
+  display: flex;
+  /* The phone's largest text: the switch goes to a second line instead of out of the screen. */
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.theme label {
+  position: relative;
+  cursor: pointer;
+}
+
+.theme input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.theme span {
+  display: block;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--line);
+  margin-left: -1px;
+  color: var(--ink-2);
+  transition:
+    color var(--t) var(--ease),
+    box-shadow var(--t) var(--ease);
+}
+
+.theme input:checked + span {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* The single "Ogranicz animacje" key has no sliding mark - its line fades in and out. */
+.theme--motion input:checked + span {
+  box-shadow: inset 0 -3px 0 var(--ink);
+}
+
+.theme input:focus-visible + span {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 23rem minmax(0, 1fr);
+  gap: 2.75rem;
+  flex: 1 1 auto !important;
+  min-height: 0;
+  padding-top: 1.25rem;
+}
+
+/* The result column: the rules switch and the tabs stay, the view under them scrolls. */
+.result {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.result__head {
+  flex: none;
+}
+
+.screen {
+  flex: 1 1 auto;
+}
+
+/* The first heading of a part of "Porównanie" stands right under its tab. */
+.section-title.section-title--first {
+  margin-top: 0;
+}
+
+/* Side: the two amounts and the assumptions */
+
+.side__title {
+  margin: 0 0 1.25rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.money {
+  display: block;
+  margin-bottom: 1.5rem;
+}
+
+.money__label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.money__hint {
+  color: var(--ink-2);
+}
+
+.money__box {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--ink);
+}
+
+.money__box:focus-within {
+  border-bottom-color: var(--red);
+}
+
+.money input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0.2rem 0;
+  background: transparent;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.money__unit {
+  font-size: 1.25rem;
+  color: var(--ink-2);
+}
+
+.money__error {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--red);
+}
+
+/* "Znam: obie kwoty / tylko umowę o pracę / tylko B2B" and the computed amount (plan A26). */
+.known {
+  margin-bottom: 1.25rem;
+}
+
+.known__lead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  color: var(--ink-2);
+}
+
+/* Three short keys in a row also on a phone - a little narrower there. */
+.known .rules__switch span {
+  padding-inline: 0.6rem;
+}
+
+/* The computed amount is a result, not a field: the line under it is dashed like a construction line. */
+.money__box--derived {
+  border-bottom-style: dashed;
+}
+
+.money__out {
+  flex: 1;
+  min-width: 0;
+  padding: 0.2rem 0;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.money__take {
+  margin-top: 0.35rem;
+}
+
+.money input[aria-invalid="true"] {
+  text-decoration: underline wavy var(--red);
+}
+
+.assume {
+  margin-top: 2.5rem;
+}
+
+.assume__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.assume__lead {
+  margin: 0.25rem 0 0.75rem;
+  color: var(--ink-2);
+}
+
+.assume__group {
+  border-top: 1px solid var(--line);
+}
+
+.assume__group:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.assume__sentence {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1.75rem 0.75rem 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  min-height: 44px;
+}
+
+/* A small "+" drawn as two lines, turning into "-" when open. */
+.assume__sentence::before,
+.assume__sentence::after {
+  content: "";
+  position: absolute;
+  right: 0.35rem;
+  top: 1.35rem;
+  width: 0.75rem;
+  height: 2px;
+  background: var(--ink-2);
+  transition: transform var(--t) var(--ease);
+}
+
+.assume__sentence::after {
+  transform: rotate(90deg);
+}
+
+.is-open > .assume__sentence::after {
+  transform: rotate(0deg);
+}
+
+@media (hover: hover) {
+  .assume__sentence:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.assume__changed {
+  font-weight: 700;
+}
+
+.assume__fields {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--t) var(--ease);
+}
+
+.assume__fields > div {
+  overflow: hidden;
+}
+
+.is-open > .assume__fields {
+  grid-template-rows: 1fr;
+}
+
+.is-open > .assume__fields > div {
+  padding-bottom: 1rem;
+}
+
+.assume__later {
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.field {
+  display: block;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+}
+
+.field legend,
+.field > span {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.field input[type="range"] {
+  width: 100%;
+  accent-color: var(--red);
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 36px;
+}
+
+.choice input {
+  accent-color: var(--red);
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.field--inline {
+  margin: 0.25rem 0 0.75rem;
+}
+
+.field--inline > span:first-child {
+  font-weight: 400;
+}
+
+.field > .field__box {
+  display: flex;
+  font-weight: 400;
+  align-items: baseline;
+  gap: 0.4rem;
+  max-width: 12rem;
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.field__box:focus-within {
+  border-bottom-color: var(--red);
+}
+
+.field__box input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  padding: 0.2rem 0;
+  background: transparent;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.field__unit {
+  color: var(--ink-2);
+}
+
+.field select,
+.field input[type="date"] {
+  display: block;
+  max-width: 100%;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--bg);
+  font: inherit;
+  color: inherit;
+}
+
+.assume__row {
+  padding-left: 0;
+}
+
+.assume__row .field--inline {
+  margin-left: 1.6rem;
+}
+
+.assume__note {
+  margin: 0.25rem 0 0.75rem;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+/* A business cost: tick, name, remove; its fields below, indented. */
+.cost {
+  min-width: 0; /* a fieldset is min-content by default - the long "Rodzaj" option pushed "Usuń" off a phone screen */
+  margin-bottom: 0.5rem;
+}
+
+.cost__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+}
+
+/* The tick's touch target: the whole row height, not just the 18 px box. */
+.cost__tick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-width: 24px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.cost__on {
+  accent-color: var(--red);
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: none;
+}
+
+.cost__name {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  border-bottom: 1px dashed var(--line);
+  background: transparent;
+  padding: 0.2rem 0;
+}
+
+.cost__name:focus {
+  outline: none;
+  border-bottom: 1.5px solid var(--red);
+}
+
+.cost__body {
+  margin-left: 1.6rem;
+}
+
+.cost__body .field--inline {
+  margin: 0 0 0.5rem;
+}
+
+.link {
+  border: 0;
+  background: none;
+  padding: 0.25rem 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Result: the answer first */
+
+/* While a slow calculation runs (other contracts), the old answer fades a little - only after
+   a moment, so quick changes do not flicker. */
+.panel {
+  transition: opacity var(--t) var(--ease);
+}
+
+.result[aria-busy="true"] .panel {
+  opacity: 0.55;
+  transition-delay: 0.35s;
+}
+
+.answer {
+  margin: 0;
+  font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
+  line-height: 1.15;
+  font-weight: 700;
+  max-width: 24ch;
+}
+
+.answer__num {
+  color: var(--red);
+  white-space: nowrap;
+}
+
+.answer__more {
+  margin: 0.75rem 0 0;
+  font-size: 1.25rem;
+  max-width: 44ch;
+}
+
+.answer__note {
+  margin: 0.75rem 0 0;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+/* The slide rule */
+
+.rule {
+  margin: 2.25rem 0 1rem;
+  user-select: none;
+}
+
+.rule svg {
+  display: block;
+  touch-action: none;
+  overflow: visible;
+}
+
+.rule__caption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--ink-2);
+}
+
+.rule__solid,
+.rule__dashed {
+  display: inline-block;
+  width: 2rem;
+  border-top: 2px solid var(--ink);
+}
+
+.rule__dashed {
+  border-top-style: dashed;
+}
+
+.rule__slide {
+  fill: var(--slide);
+}
+
+.rule__base {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.rule__base--dashed {
+  stroke-dasharray: 6 4;
+}
+
+.rule__tick {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.rule__num {
+  font-family: "osifont", sans-serif;
+  font-size: 15px;
+  fill: var(--ink);
+}
+
+.rule__cursor,
+.rule__offer {
+  cursor: ew-resize;
+  outline: none;
+}
+
+.rule__cursor > *,
+.rule__offer > * {
+  transition: all var(--t) var(--ease);
+}
+
+.is-dragging .rule__cursor > *,
+.is-dragging .rule__offer > * {
+  transition: none;
+}
+
+.rule__hair {
+  stroke: var(--red);
+  stroke-width: 2;
+}
+
+.rule__grip {
+  fill: transparent;
+  stroke: var(--red);
+  stroke-width: 1;
+}
+
+.rule__focus {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}
+
+.rule__value {
+  font-size: 16px;
+  font-weight: 700;
+  fill: var(--red);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
+
+.rule__knockout {
+  fill: var(--bg);
+}
+
+.rule__marker {
+  fill: var(--ink);
+}
+
+.rule__offer-line {
+  stroke: var(--ink);
+  stroke-dasharray: 4 3;
+}
+
+.rule__label {
+  font-size: 16px;
+  font-weight: 700;
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
+
+.rule__gap line {
+  stroke: var(--ink);
+}
+
+.rule__gap path {
+  fill: var(--ink);
+}
+
+.rule__gap-text {
+  font-size: 15px;
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 6px;
+}
+
+/* B2B over UoP by the rate: the same ink and hairline as the slide rule, the gain hatched. */
+
+.profit {
+  margin: 0.5rem 0 1rem;
+}
+
+.profit svg {
+  display: block;
+  overflow: visible;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.profit svg:focus-visible {
+  outline: 2px dashed var(--ink);
+  outline-offset: 4px;
+}
+
+.profit__read {
+  margin: 0 0 0.75rem;
+  min-height: 3em;
+  font-weight: 700;
+}
+
+.profit__grid {
+  stroke: var(--line);
+  stroke-width: 1;
+  stroke-dasharray: 1 5;
+}
+
+.profit__axis,
+.profit__tick {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.profit__zero {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+}
+
+.profit__num {
+  font-family: "osifont", sans-serif;
+  font-size: 15px;
+  fill: var(--ink);
+}
+
+.profit__zone {
+  font-size: 14px;
+  fill: var(--ink-2);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.profit__hatch {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.profit__line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.profit__even line {
+  stroke: var(--red);
+  stroke-width: 2;
+}
+
+.profit__even text {
+  font-size: 16px;
+  font-weight: 700;
+  fill: var(--red);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
+
+.profit__offer circle,
+.profit__offer path {
+  fill: var(--ink);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.profit__cursor line {
+  stroke: var(--ink);
+  stroke-dasharray: 4 3;
+}
+
+.profit__cursor circle {
+  fill: var(--bg);
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.profit__axis-name {
+  margin: 0.25rem 0 0;
+  color: var(--ink-2);
+  font-size: 0.95rem;
+}
+
+.profit__table {
+  margin-top: 0.75rem;
+  /* A narrow screen with large text: the table scrolls inside, the page does not. */
+  overflow-x: auto;
+}
+
+.profit__table summary {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.profit__table table {
+  margin-top: 0.5rem;
+  border-collapse: collapse;
+}
+
+.profit__table th,
+.profit__table td {
+  padding: 0.3rem 1rem 0.3rem 0;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.profit__table th:last-child,
+.profit__table td:last-child {
+  padding-right: 0;
+}
+
+.profit__table th {
+  font-weight: 700;
+  text-align: left;
+}
+
+.profit__table td:first-child {
+  text-align: left;
+}
+
+/* "Skąd te kwoty": dimension lines */
+
+.section-title {
+  margin: 2.5rem 0 0;
+  font-size: 1.5rem;
+}
+
+.dims {
+  margin-top: 1.5rem;
+}
+
+.dims__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+}
+
+.dims__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--text-col) minmax(0, 1fr);
+  column-gap: 1.5rem;
+}
+
+.dims__exts {
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0;
+  left: calc(var(--text-col) + 1.5rem);
+  right: 0;
+  pointer-events: none;
+}
+
+.dims__ext {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--line);
+  opacity: 1;
+}
+
+.dims--b2b .dims__ext {
+  border-left-style: dashed;
+}
+
+.dims__row {
+  display: contents;
+}
+
+.dims__text {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.dims__text--whole {
+  cursor: default;
+  font-weight: 700;
+}
+
+.dims__name {
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+.dims__short {
+  grid-column: 1 / -1;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+.dims__row--net .dims__name,
+.dims__row--net .amount {
+  font-weight: 700;
+}
+
+.dims__row--net .amount {
+  color: var(--red);
+}
+
+.dims__track {
+  position: relative;
+  min-height: 2.5rem;
+}
+
+.dims__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0.5rem;
+  height: 1.75rem;
+  border: 1.5px solid var(--ink);
+}
+
+.dims--b2b .dims__bar {
+  border-style: dashed;
+}
+
+.dims__seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transition:
+    left var(--t) var(--ease),
+    width var(--t) var(--ease);
+}
+
+/* What you keep is hatched like a section on a drawing. */
+.dims__seg--netto {
+  background: repeating-linear-gradient(-45deg, var(--hatch) 0 1.5px, transparent 1.5px 7px);
+}
+
+.dims__dim {
+  position: absolute;
+  top: 1.1rem;
+  height: 0;
+  border-top: 1.5px solid var(--ink);
+  transition:
+    left var(--t) var(--ease),
+    width var(--t) var(--ease);
+}
+
+.dims--b2b .dims__dim {
+  border-top-style: dashed;
+}
+
+.dims__row--net .dims__dim {
+  border-top-color: var(--red);
+}
+
+/* Arrowheads at both ends of a dimension line. */
+.dims__dim i {
+  position: absolute;
+  top: -5.5px;
+  width: 0;
+  height: 0;
+  border-top: 4.5px solid transparent;
+  border-bottom: 4.5px solid transparent;
+}
+
+.dims__dim i:first-child {
+  left: 0;
+  border-right: 9px solid var(--ink);
+}
+
+.dims__dim i:last-child {
+  right: 0;
+  border-left: 9px solid var(--ink);
+}
+
+.dims__row--net .dims__dim i:first-child {
+  border-right-color: var(--red);
+}
+
+.dims__row--net .dims__dim i:last-child {
+  border-left-color: var(--red);
+}
+
+.dims__detail {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--t) var(--ease);
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+}
+
+.dims__detail > div {
+  overflow: hidden;
+}
+
+.dims__detail p {
+  margin: 0;
+  padding: 0.25rem 0 0.75rem;
+  max-width: 62ch;
+}
+
+.is-open > .dims__detail {
+  grid-template-rows: 1fr;
+}
+
+@media (hover: hover) {
+  .dims__text:not(.dims__text--whole):hover .dims__name {
+    text-decoration-color: var(--ink);
+  }
+}
+
+.dims__vat {
+  margin: 0.75rem 0 0;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+/* Drum counter: every digit is a reel of 0-9 that turns to its place. */
+.roll__vis {
+  display: inline-flex;
+  white-space: pre;
+  user-select: none;
+}
+
+.roll__reel {
+  display: inline-block;
+  height: 1lh;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.roll__strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform calc(var(--t) * 2) var(--ease);
+}
+
+.roll__strip > span {
+  height: 1lh;
+}
+
+/* The year month by month: a table drawn with thin rules only, no stripes, no boxes. */
+.months {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.months table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.months th,
+.months td {
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+}
+
+.months thead th {
+  border-bottom: 1.5px solid var(--ink);
+  font-weight: 700;
+  vertical-align: bottom;
+}
+
+.months th:first-child,
+.months .months__why {
+  text-align: left;
+}
+
+.months tbody th {
+  font-weight: 400;
+}
+
+.months .months__why {
+  color: var(--ink-2);
+  white-space: normal;
+  min-width: 10rem;
+}
+
+.months__end tr:first-child > * {
+  border-top: 1.5px solid var(--ink);
+}
+
+.months__total > * {
+  font-weight: 700;
+  border-bottom: 0;
+}
+
+.months__total td:nth-child(4) {
+  color: var(--red);
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 2rem;
+  padding: 0.25rem 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 0.875rem;
+}
+
+.foot p {
+  margin: 0;
+}
+
+/* On a phone the footer is the end of the "Źródła" screen. */
+.foot--in {
+  display: block;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  font-size: 1rem;
+}
+
+/* Tabs of the result column: a line under the chosen one, like the theme switch. */
+.tabs {
+  display: flex;
+  /* All tabs stay on the screen at 360 dp with the largest system text - in two rows if needed. */
+  flex-wrap: wrap;
+  column-gap: 1.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+/* The parts of "Porównanie": a second, quieter row - smaller text, a dotted line. */
+.parts {
+  padding-bottom: 1rem;
+}
+
+.tabs--parts {
+  column-gap: 1.25rem;
+  margin: 0;
+  border-bottom-style: dotted;
+}
+
+.tabs--parts button {
+  padding: 0.3rem 0 0.4rem;
+  font-size: 1rem;
+}
+
+/* The phone's tab bar at the bottom of the screen; the line over the chosen one, at the top. */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -1rem;
+  padding: 0 0.25rem env(safe-area-inset-bottom);
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.nav button {
+  /* Wrapped by the longest word, not the whole label: "Co warto wiedzieć" takes two lines
+     instead of pushing "Źródła" to a second row; with very large text the bar takes two rows. */
+  flex: 1 1 min-content;
+  min-height: 48px;
+  padding: 0.4rem 0.375rem;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: color var(--t) var(--ease);
+}
+
+.nav button[aria-selected="true"] {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.tabs button {
+  transition: color var(--t) var(--ease);
+  padding: 0.5rem 0 0.6rem;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 1.125rem;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected="true"] {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Without view transitions (older browsers) the new panel at least fades in. */
+@supports not (view-transition-name: none) {
+  .panel {
+    animation: panel-in var(--t) var(--ease);
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* "?" hints: the button next to a field, the explanation in a popover anchored to it (assumption A6). */
+.hinted {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.hinted > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.hint__btn {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+/* A bigger target for a finger, without a bigger circle. */
+@media (pointer: coarse) {
+  .hint__btn {
+    position: relative;
+  }
+
+  .hint__btn::after {
+    content: "";
+    position: absolute;
+    inset: -0.6rem;
+  }
+}
+
+@media (hover: hover) {
+  .hint__btn:hover {
+    border-color: var(--ink);
+  }
+}
+
+.hint__btn:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+legend .hint__btn {
+  margin-left: 0.35rem;
+}
+
+.hint__tip {
+  inset: auto;
+  position-area: bottom span-right;
+  position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;
+  margin: 0.4rem 0 0;
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 0.6rem 0.75rem;
+  border: 1.5px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  font-weight: 400;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition:
+    opacity var(--t) var(--ease),
+    transform var(--t) var(--ease),
+    overlay var(--t) allow-discrete,
+    display var(--t) allow-discrete;
+}
+
+/* A bridge around the hint for the mouse: the gap between the "?" and the hint counts as the
+   hint, so the way to the link inside never leaves it (plan A25). Invisible, under the text. */
+.hint__tip {
+  overflow: visible;
+}
+
+.hint__tip::before {
+  content: "";
+  position: absolute;
+  inset: -0.6rem;
+  z-index: -1;
+}
+
+.hint__tip:popover-open {
+  opacity: 1;
+  transform: none;
+}
+
+@starting-style {
+  .hint__tip:popover-open {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+
+.hint__more {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--ink);
   font-size: 0.9rem;
+  text-underline-offset: 3px;
+}
+
+/* On a phone the explanation takes the whole width under the field. */
+@media (max-width: 600px) {
+  .hint__tip {
+    position-area: bottom span-all;
+    position-try-fallbacks: flip-block;
+    justify-self: stretch;
+    width: auto;
+    max-width: none;
+    margin-inline: 1rem;
+  }
+}
+
+/* "Co warto wiedzieć": contents, chapters, the forms side by side */
+.know__toc ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.know__toc a {
+  color: var(--ink);
+  text-underline-offset: 3px;
+}
+
+.know__chapter h2:focus {
+  outline: none;
+}
+
+.know__chapter h2:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 4px;
+}
+
+.know__lead {
+  margin: 0.75rem 0 0;
+  max-width: 62ch;
+  font-size: 1.125rem;
+}
+
+.know__table {
+  margin-top: 1.25rem;
+  overflow-x: auto;
+}
+
+.know__table:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.know__table table {
+  min-width: 44rem;
+  border-collapse: collapse;
+}
+
+.know__table th,
+.know__table td {
+  padding: 0.6rem 0.75rem 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.know__table thead th {
+  border-bottom: 2px solid var(--ink);
+}
+
+.know__table tbody th {
+  width: 9rem;
+  color: var(--ink-2);
+  font-weight: 400;
+}
+
+/* Scrolled sideways on a phone, the name of the row stays in view. */
+.know__table tbody th,
+.know__table thead td {
+  position: sticky;
+  left: 0;
+  background: var(--bg);
+}
+
+.know__section {
+  max-width: 62ch;
+}
+
+.know__section h3 {
+  margin: 1.75rem 0 0;
+  font-size: 1.15rem;
+}
+
+.know__section p,
+.know__section ul {
+  margin: 0.6rem 0 0;
+}
+
+.know__section ul {
+  padding-left: 1.25rem;
+}
+
+.know__section li + li {
+  margin-top: 0.35rem;
+}
+
+.know__sources {
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+.know__sources a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+/* "Rok": the tape measure, one piece per month */
+.tape__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-2);
+}
+
+.tape__legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tape__legend svg {
+  width: 1.5rem;
+  height: 0.9rem;
+}
+
+.tape__key {
+  display: inline-block;
+  width: 2rem;
+  border-top: 2px solid var(--ink);
+}
+
+.tape__key--b2b {
+  margin-left: 0.75rem;
+  border-top-style: dashed;
+}
+
+.tape {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.75rem 1rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tape__name {
+  display: flex;
+  /* Largest system text on a phone: "21 dni" goes under the month instead of out of the screen. */
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.3rem;
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+}
+
+.tape__count {
+  font-family: "osifont", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  white-space: nowrap;
+  color: var(--ink-2);
+}
+
+.tape__strip {
+  display: block;
+  width: 100%;
+  height: 1.25rem;
+  margin-top: 0.3rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 2px solid var(--ink);
+}
+
+.tape__strip--b2b {
+  border-bottom-style: dashed;
+}
+
+.tape__day {
+  fill: var(--slide);
+}
+
+.tape__notch {
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.tape__pattern-bg {
+  fill: var(--slide);
+}
+
+.tape__pattern {
+  stroke: var(--ink-2);
+  stroke-width: 1.4;
+}
+
+.tape__dot {
+  fill: var(--ink-2);
+}
+
+/* A day without an invoice: cut out of the tape, only the outline stays. */
+.tape__cut {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.tape__none {
+  stroke: var(--line);
+  stroke-dasharray: 1 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.tape__net {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.tape__net::before {
+  content: "";
+  width: 1rem;
+  border-top: 2px solid var(--ink);
+}
+
+.tape__net--b2b::before {
+  border-top-style: dashed;
+}
+
+.tape__net--b2b {
+  margin-top: 0.15rem;
+}
+
+/* Payment deadlines: the days of a month as a scale */
+.due {
+  margin-top: 1rem;
+}
+
+.due__scale {
+  display: block;
+  width: 100%;
+  max-width: 40rem;
+  overflow: visible;
+}
+
+.due__base {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.due__tick {
+  stroke: var(--line);
+}
+
+.due__num {
+  font-family: "osifont", sans-serif;
+  font-size: 13px;
+  text-anchor: middle;
+  fill: var(--ink);
+}
+
+.due__mark {
+  fill: var(--red);
+}
+
+.due__list {
+  margin: 1rem 0 0;
+}
+
+.due__list > div {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr);
+  gap: 0 1rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.due__list dt {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.due__list dd {
+  grid-column: 2;
+  margin: 0;
+}
+
+.due__list dd + dd {
+  margin-top: 0.5rem;
+}
+
+.due__who,
+.due__source {
+  color: var(--ink-2);
+}
+
+.due__source {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.due__year-title {
+  margin: 2rem 0 0;
+  font-size: 1.15rem;
+}
+
+@media (max-width: 1200px) {
+  .tape {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .tape {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .due__list > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .due__list dd {
+    grid-column: 1;
+  }
+}
+
+.font-licences {
+  margin-top: 0.75rem;
+}
+
+.font-licences summary {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.font-licences ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.font-licences li + li {
+  margin-top: 0.35rem;
+}
+
+.font-licences a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+/* The address as text: where the link does not open, it can be copied. */
+.font-licences__url {
+  display: block;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.dock {
+  display: none;
+}
+
+/* Narrow screens (a phone): one screen at a time, scrolled inside, the tabs on a bar at the
+   bottom, the answer above it wherever the result is not on the screen (plan A27); the dimension
+   text above its line. */
+@media (max-width: 900px) {
+  .page {
+    padding: 0 1rem;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    padding-top: 0;
+  }
+
+  .screen {
+    padding: 0 0.5rem 2rem 4px;
+  }
+
+  /* Room above the first line of every screen (not padding: the parts below stick to the top). */
+  .screen::before {
+    content: "";
+    display: block;
+    height: 1rem;
+  }
+
+  /* The assumptions are a screen of their own here, scrolled with it. */
+  .screen .side {
+    overflow: visible;
+    padding: 0;
+    margin: 0;
+  }
+
+  .assume {
+    margin-top: 0;
+  }
+
+  /* The parts of "Porównanie" stay at the top while their content scrolls under them. */
+  .parts {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 -0.5rem 0 -4px;
+    padding: 0.5rem 0.5rem 1rem 4px;
+    background: var(--bg);
+  }
+
+  /* Four parts in two columns, not four rows. */
+  .tabs--parts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1rem;
+  }
+
+  .tabs--parts button {
+    justify-self: start;
+    text-align: left;
+  }
+
+
+  .dims__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dims__exts {
+    left: 0;
+  }
+
+  .dims__text {
+    position: relative;
+    z-index: 1;
+    background: var(--bg);
+  }
+
+  .dims__track {
+    min-height: 1.75rem;
+  }
+
+  .dims__dim {
+    top: 0.5rem;
+  }
+
+  .dock {
+    display: block;
+    margin: 0 -1rem;
+    padding: 0.6rem 1rem;
+    background: var(--ink);
+    color: var(--bg);
+    font-weight: 700;
+    text-align: center;
+  }
+}
+
+/* A dimension too short for its arrows: arrows outside, pointing in (as on a drawing). */
+.dims__dim.is-narrow i:first-child {
+  left: -9px;
+  border-right: 0;
+  border-left: 9px solid var(--ink);
+}
+
+.dims__dim.is-narrow i:last-child {
+  right: -9px;
+  border-left: 0;
+  border-right: 9px solid var(--ink);
+}
+
+.dims__text--whole .dims__short {
+  font-weight: 400;
+}
+
+/* Which rules the result follows: a row of keys like the theme switch; another year than today
+   is stamped on the result in a dashed frame - like a drawing marked "draft". */
+.rules {
+  margin-bottom: 1.25rem;
+}
+
+.rules__switch {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rules__switch label {
+  position: relative;
+  cursor: pointer;
+}
+
+.rules__switch input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.rules__switch span {
+  display: block;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--line);
+  margin: 0 0 -1px -1px;
+  color: var(--ink-2);
+  transition: color var(--t) var(--ease), box-shadow var(--t) var(--ease);
+}
+
+.rules__switch input:checked + span {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.rules__switch input:focus-visible + span {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.rules__mark {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 2px dashed var(--red);
+  max-width: 62ch;
+  animation: panel-in var(--t) var(--ease);
+}
+
+.rules__mark span {
+  font-weight: 700;
+}
+
+.rules__mark .link {
+  font: inherit;
+  color: inherit;
+}
+
+/* "Co się zmieni i kiedy": a list like the change table in a drawing's title block. */
+.changes {
+  margin-top: 1rem;
+}
+
+.changes__title {
+  margin: 1.5rem 0 0.25rem;
+  font-size: 1.125rem;
+}
+
+.changes__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.changes__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.changes__name {
+  font-weight: 700;
+}
+
+.changes__what,
+.changes__meta,
+.changes__note {
+  grid-column: 1;
+}
+
+.changes__meta,
+.changes__note {
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+.changes__meta a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.changes__in {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  padding: 0 0.4rem;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.changes__in--yes {
+  border-color: var(--ink);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .rules__switch {
+    flex-direction: column;
+  }
+
+  .rules__switch span {
+    margin: 0 0 -1px;
+  }
+
+  .known .rules__switch {
+    flex-direction: row;
+  }
+
+  .known .rules__switch span {
+    margin: 0 0 -1px -1px;
+  }
+}
+
+/* Currency of the results: the same keys as the theme switch, with a word in front. */
+.theme--currency {
+  margin-left: auto;
+  align-items: center;
+}
+
+.theme .theme__lead {
+  padding: 0 0.5rem 0 0;
+  border: 0;
+  margin: 0;
+}
+
+/* "Ogranicz animacje": one key in the same style, pressed = animations off. */
+.theme--motion {
+  position: relative;
+  cursor: pointer;
+}
+
+/* The B2B rate in złoty, euro or dollars: the unit becomes a quiet select. */
+.money__currency {
+  border: 0;
+  padding: 0.1rem 0.25rem;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.money__currency:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.money__fx {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+/* "Źródła": the refresh first, then every number like a parts list on a drawing. */
+.sources__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin: 1rem 0;
+}
+
+.sources__button {
+  padding: 0.5rem 1.25rem;
+  border: 2px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sources__button:hover:not(:disabled) {
+  box-shadow: inset 0 -3px 0 var(--ink);
+}
+
+.sources__button:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.sources__button:disabled {
+  cursor: progress;
+  color: var(--ink-2);
+  border-color: var(--line);
+}
+
+.sources__state {
+  color: var(--ink-2);
+}
+
+.sources__report {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.sources__acts {
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--red);
+}
+
+.sources__acts p {
+  margin: 0 0 0.5rem;
+}
+
+.sources__acts ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.sources__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.sources__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.sources__name {
+  font-weight: 700;
+}
+
+.sources__value {
+  grid-column: 2;
+  grid-row: 1;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sources__meta,
+.sources__note,
+.sources__pending {
+  grid-column: 1 / -1;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+.sources__meta a,
+.sources__acts a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.sources__pending {
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+/* The address as text: where the link does not open, it can be copied. */
+.sources__url {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 0.8125rem;
+}
+
+.sources a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+/* "Zapisz i udostępnij" under the assumptions: PDF, link, named scenarios (task A16). */
+.scenarios {
+  margin-top: 2.5rem;
+}
+.scenarios__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1.25rem;
+}
+.scenarios__button {
+  min-height: 44px;
+  padding: 0.5rem 1.25rem;
+  border: 2px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.scenarios__button:hover:not(:disabled) {
+  box-shadow: inset 0 -3px 0 var(--ink);
+}
+.scenarios__button:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+.scenarios__button:disabled {
+  cursor: progress;
+  color: var(--ink-2);
+  border-color: var(--line);
+}
+.scenarios__label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.scenarios__row {
+  display: flex;
+  gap: 0.75rem;
+}
+.scenarios__row input,
+.scenarios__link {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+}
+.scenarios__row input:focus-visible,
+.scenarios__link:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+.scenarios__row input::placeholder {
+  color: var(--ink-2);
+}
+.scenarios__status:empty {
+  display: none;
+}
+.scenarios__status {
+  margin: 0.5rem 0;
+  overflow-wrap: anywhere;
+}
+.scenarios__link {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+}
+.scenarios__list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.scenarios__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  padding: 0.5rem 0.25rem 0.5rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.scenarios__name {
+  flex: 1;
+  min-width: 10rem;
+  font-weight: 700;
+  overflow-wrap: anywhere; /* a 60-letter name without spaces must not widen the phone page */
+}
+.scenarios__date {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+.scenarios__item .link {
+  min-height: 44px;
+}
+
+/* ---- Movement: nothing appears, disappears or switches at once (assumption A9 "nic zerojedynkowo").
+   Every duration is --t, so "Ogranicz animacje" (--t: 0ms) stops all of it. ---- */
+
+/* Switches (currency, theme, rules, tabs): the line under the chosen option slides to the new one
+   (ui/marks.ts puts the option's place into --mark-*). Inside a bordered option it stays within
+   the border, like the old inset line. */
+[data-mark] {
+  position: relative;
+  --mark-inset: 1px;
+}
+
+.tabs[data-mark] {
+  --mark-inset: 0px;
+}
+
+[data-mark]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--mark-w, 0px) - 2 * var(--mark-inset));
+  height: 3px;
+  background: var(--ink);
+  transform: translate(calc(var(--mark-x, 0px) + var(--mark-inset)), calc(var(--mark-y, 0px) - 3px - var(--mark-inset)));
+  pointer-events: none;
+}
+
+[data-mark][data-mark-ready]::after {
+  transition:
+    transform var(--t) var(--ease),
+    width var(--t) var(--ease),
+    background-color var(--t) var(--ease);
+}
+
+/* Each option is as wide as its bold version, so choosing one does not push the others aside. */
+[data-text]::after {
+  content: attr(data-text);
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: 700;
+}
+
+/* Tabs: the old panel slides out and fades, the new one comes in from the side of its tab, and
+   the space between them grows or shrinks to the new height (ui/motion.ts smoothly(..., "tab-*")). */
+.screen {
+  view-transition-name: tab-panel;
+}
+
+::view-transition-group(tab-panel),
+::view-transition-old(tab-panel),
+::view-transition-new(tab-panel) {
+  animation-duration: var(--t);
+  animation-timing-function: var(--ease);
+}
+
+:root[data-vt="tab-next"]::view-transition-old(tab-panel) {
+  animation-name: tab-out-left;
+  animation-fill-mode: both;
+}
+
+:root[data-vt="tab-next"]::view-transition-new(tab-panel) {
+  animation-name: tab-in-right;
+  animation-fill-mode: both;
+}
+
+:root[data-vt="tab-prev"]::view-transition-old(tab-panel) {
+  animation-name: tab-out-right;
+  animation-fill-mode: both;
+}
+
+:root[data-vt="tab-prev"]::view-transition-new(tab-panel) {
+  animation-name: tab-in-left;
+  animation-fill-mode: both;
+}
+
+@keyframes tab-out-left {
+  to {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+}
+
+@keyframes tab-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes tab-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes tab-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+}
+
+/* Blocks shown only sometimes (ui/Reveal.tsx): they open from zero height while fading in and
+   close the same way. flow-root keeps the margins of the content inside the moving height. */
+.reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--t) var(--ease),
+    opacity var(--t) var(--ease);
+}
+
+.reveal--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+@starting-style {
+  .reveal--open {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+.reveal__in {
+  display: flow-root;
+  min-height: 0;
+  overflow: clip;
+  /* Room for the focus outline (2px + 2px offset) of what is inside. */
+  overflow-clip-margin: 4px;
+}
+
+/* A message that replaces another (saved, deleted, refreshed, an error) fades in. */
+.fade-in {
+  animation: panel-in var(--t) var(--ease);
+}
+
+/* A newly saved scenario fades into the list. */
+.scenarios__item {
+  animation: panel-in var(--t) var(--ease);
+}
+
+/* "Te same liczby w tabeli" and the font licences open and close in height, not at once. */
+:root {
+  interpolate-size: allow-keywords;
+}
+
+details::details-content {
+  block-size: 0;
+  overflow: clip;
+  opacity: 0;
+  transition:
+    block-size var(--t) var(--ease),
+    opacity var(--t) var(--ease),
+    content-visibility var(--t) allow-discrete;
+}
+
+details[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+
+/* The chart glides to the new numbers: the line and the hatched area change shape, the even line
+   and the zero line move, the offer's dot and mark follow. */
+.profit__line,
+.profit__gain,
+.profit__offer path {
+  transition: d var(--t) var(--ease);
+}
+
+.profit__offer circle {
+  transition:
+    cx var(--t) var(--ease),
+    cy var(--t) var(--ease);
+}
+
+.profit__even,
+.profit__zero {
+  transition: transform var(--t) var(--ease);
+}
+
+#profit-above rect {
+  transition:
+    height var(--t) var(--ease),
+    width var(--t) var(--ease);
+}
+
+.profit__num,
+.profit__zone,
+.profit__even text {
+  animation: panel-in var(--t) var(--ease);
+}
+
+/* The reading cursor of the chart fades in when the pointer comes over it. */
+.profit__cursor {
+  animation: panel-in var(--t) var(--ease);
+}
+
+/* The demo on a page of its own (not inside the home page's window): the app as a window in the
+   middle of the page, the page around it in the slide's grey (plan A27). */
+@media (min-width: 901px) and (min-height: 600px) {
+  :root[data-window] body {
+    padding: 1.5rem;
+    background: var(--slide);
+  }
+
+  :root[data-window] .page {
+    height: calc(100dvh - 3rem);
+    max-width: 84rem;
+    border: 1px solid var(--line);
+    background: var(--bg);
+  }
 }

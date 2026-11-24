@@ -1,0 +1,200 @@
+/*
+ * First steps (plan A20): a note called out on the drawing. Corner marks in the hairline red
+ * around the part, a thin leader line to the note, the note itself in ink on the page colour -
+ * no shadow, no backdrop; only the theme variables, so both themes keep their contrast.
+ */
+.foot__help {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin-top: 0.75rem !important;
+}
+
+.foot__help .link {
+  color: var(--ink);
+  font-size: 1rem;
+  min-height: 44px;
+}
+
+/* The whole screen in the top layer, letting clicks through except on the note. */
+.steps {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--t) var(--ease),
+    overlay var(--t) allow-discrete,
+    display var(--t) allow-discrete;
+}
+
+.steps:popover-open {
+  opacity: 1;
+}
+
+@starting-style {
+  .steps:popover-open {
+    opacity: 0;
+  }
+}
+
+.steps__frame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transition:
+    transform var(--t) var(--ease),
+    width var(--t) var(--ease),
+    height var(--t) var(--ease);
+}
+
+/* Four corners, each an L of two red strokes. */
+.steps__frame i {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 0 solid var(--red);
+}
+
+.steps__frame i:nth-child(1) {
+  top: 0;
+  left: 0;
+  border-top-width: 3px;
+  border-left-width: 3px;
+}
+
+.steps__frame i:nth-child(2) {
+  top: 0;
+  right: 0;
+  border-top-width: 3px;
+  border-right-width: 3px;
+}
+
+.steps__frame i:nth-child(3) {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 3px;
+  border-left-width: 3px;
+}
+
+.steps__frame i:nth-child(4) {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 3px;
+  border-right-width: 3px;
+}
+
+.steps__leader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  border-left: 1.5px solid var(--red);
+  transition:
+    transform var(--t) var(--ease),
+    height var(--t) var(--ease);
+}
+
+.steps__note {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: min(23rem, calc(100vw - 16px));
+  padding: 0.9rem 1rem 0.75rem;
+  border: 2px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  pointer-events: auto;
+  /* Not hidden while unplaced: a hidden note could not take the focus. */
+  opacity: 0;
+}
+
+.steps__note.is-placed {
+  opacity: 1;
+  transition: opacity var(--t) var(--ease);
+}
+
+.steps__note.is-follow {
+  transition:
+    opacity var(--t) var(--ease),
+    transform var(--t) var(--ease);
+}
+
+.steps__note:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+.steps__body {
+  transition: opacity var(--t) var(--ease);
+}
+
+@starting-style {
+  .steps__body {
+    opacity: 0;
+  }
+}
+
+.steps__count {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+.steps__title {
+  margin: 0.15rem 0 0.35rem;
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+
+.steps__text {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.steps__buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.steps__skip {
+  margin-right: auto;
+  min-height: 44px;
+  color: var(--ink);
+}
+
+.steps__btn {
+  min-height: 44px;
+  min-width: 5.5rem;
+  padding: 0.35rem 0.9rem;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.steps__btn--go {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+@media (hover: hover) {
+  .steps__btn:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}

@@ -1,0 +1,39 @@
+# Once a day: new legal acts about tax, social security, health insurance or wages
+# (Sejm ELI API) become issues "Nowy akt - sprawdź stawki", so the rates file is fixed
+# before users notice. The script and its tests: scripts/check-acts.mjs.
+name: Nowe akty prawne
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # 7:17 in Poland in winter, 8:17 in summer
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: nowe-akty
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: scripts
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Tests of the check
+        run: node --test "scripts/*.test.mjs"
+
+      - name: New acts -> issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/check-acts.mjs

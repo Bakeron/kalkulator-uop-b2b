@@ -51,6 +51,24 @@ export interface UopInput {
   };
   /** Accident insurance rate of the employer in basis points; `null` = the default rate. */
   accidentRate: number | null;
+  /**
+   * PIT-2 filed with this employer (1/12 of the tax-reducing amount off every advance). Missing =
+   * filed; a second employment contract usually has it off.
+   */
+  pit2?: boolean;
+}
+
+/** Other contracts of the same person that change this one (assumption A1 "Kilka umów naraz"). */
+export interface UopContext {
+  /**
+   * Base of pension and disability contributions already used up in each month by other
+   * contracts - the annual 30x limit is one for all of them.
+   */
+  zusLimitUsed?: readonly Money[];
+  /** "Zero PIT" exemption already used up in each month by other contracts (one annual limit). */
+  zeroPitUsed?: readonly Money[];
+  /** 50% author's costs already used up in each month by other contracts (one annual limit). */
+  authorsUsed?: readonly Money[];
 }
 
 export interface EmployerPart {
@@ -162,13 +180,13 @@ export function defaultUopInput(gross: Money): UopInput {
   };
 }
 
-interface SickSplit {
+export interface SickSplit {
   calendar: number[];
   working: number[];
 }
 
 /** Sick days run from the first day of the start month, one after another, within the year. */
-function sickDays(year: number, startMonth: number, days: number): SickSplit {
+export function sickDays(year: number, startMonth: number, days: number): SickSplit {
   const calendar = Array<number>(12).fill(0);
   const working = Array<number>(12).fill(0);
   const free = holidays(year);
@@ -184,7 +202,7 @@ function sickDays(year: number, startMonth: number, days: number): SickSplit {
 }
 
 /** Annual result of the employment contract. */
-export function calculateUop(input: UopInput, rates: Rates): UopYear {
+export function calculateUop(input: UopInput, rates: Rates, context: UopContext = {}): UopYear {
   const calendarDays = monthDays(rates.year);
   const sick = sickDays(rates.year, input.sickness.startMonth, input.sickness.days);
   const employerDaysLimit = input.sickness.over50 ? rates.sickPayEmployerDaysOver50 : rates.sickPayEmployerDays;
@@ -217,7 +235,8 @@ export function calculateUop(input: UopInput, rates: Rates): UopYear {
     }
     const zusBase = salary + cashBonuses + inKind;
 
-    // Pension and disability only up to the annual 30x limit.
+    // Pension and disability only up to the annual 30x limit (shared with other contracts).
+    limitLeft = Math.max(0, limitLeft - (context.zusLimitUsed?.[m] ?? 0));
     const capped = Math.min(zusBase, limitLeft);
     limitLeft -= capped;
     const pension = ofRate(capped, rates.pensionEmployee);
@@ -241,6 +260,8 @@ export function calculateUop(input: UopInput, rates: Rates): UopYear {
     const ppkEmployer = input.ppk ? ofRate(zusBase, rates.ppkEmployer) : 0;
 
     // Tax. "Zero PIT" frees revenue from work up to the annual limit (not the ZUS allowance).
+    exemptLeft = Math.max(0, exemptLeft - (context.zeroPitUsed?.[m] ?? 0));
+    authorsLeft = Math.max(0, authorsLeft - (context.authorsUsed?.[m] ?? 0));
     const revenue = zusBase + sickPay + allowance + ppkEmployer;
     const exempt = Math.min(revenue - allowance, exemptLeft);
     exemptLeft -= exempt;
@@ -268,7 +289,7 @@ export function calculateUop(input: UopInput, rates: Rates): UopYear {
 
     const income = Math.max(0, taxable - socialDeducted - costs - authorsCosts);
     const taxBase = toFullZl(income);
-    const advance = monthlyAdvance(taxBase, baseSoFar, rates);
+    const advance = monthlyAdvance(taxBase, baseSoFar, rates, input.pit2 ?? true);
     baseSoFar += taxBase;
 
     const net = salary + cashBonuses + sickPay + allowance - social - health - advance - ppkEmployee;

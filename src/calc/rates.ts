@@ -30,9 +30,22 @@ export interface RateItem<T> extends SourceInfo {
 /** One bracket of the PIT scale in a rates file: [upper limit in zł or null for "above", rate %]. */
 export type BracketJson = [number | null, number];
 
+/**
+ * A planned change that moves no number of the calculation (e.g. who pays the sick pay) - shown
+ * only in "Co się zmieni i kiedy".
+ */
+export interface Bill extends SourceInfo {
+  title: string;
+  /** What it would change, in plain words. */
+  what: string;
+  /** From when, as far as it is known, e.g. "30 dni po ogłoszeniu". */
+  from: string;
+}
+
 /** Shape of `src/rates/<year>.json`. */
 export interface RatesFile {
   year: number;
+  bills?: Bill[];
   items: {
     minWage: RateItem<number>;
     avgWageForecast: RateItem<number>;
@@ -75,6 +88,17 @@ export interface RatesFile {
     voluntarySicknessWaitDays: RateItem<number>;
     startReliefMonths: RateItem<number>;
     preferentialMonths: RateItem<number>;
+    carCostShare: RateItem<number>;
+    carVatShare: RateItem<number>;
+    fixedAssetLimit: RateItem<number>;
+    // Several contracts, family
+    employeeCostsMultiLimit: RateItem<number>;
+    employeeCostsMultiLimitCommuter: RateItem<number>;
+    civilCostsRate: RateItem<number>;
+    smallContractLimit: RateItem<number>;
+    childRelief: RateItem<number[]>;
+    childReliefIncomeLimitMarried: RateItem<number>;
+    childReliefIncomeLimitSingle: RateItem<number>;
   };
 }
 
@@ -139,6 +163,23 @@ export interface Rates {
   voluntarySicknessWaitDays: number;
   startReliefMonths: number;
   preferentialMonths: number;
+  /** A company car also used privately: share of its expenses in costs and of its VAT deducted. */
+  carCostShare: Bp;
+  carVatShare: Bp;
+  /** Equipment up to this net price goes to costs at once, a dearer one is depreciated. */
+  fixedAssetLimit: Money;
+  /** Annual costs of several employment contracts together (art. 22 ust. 2 pkt 2 and 4). */
+  employeeCostsMultiLimit: Money;
+  employeeCostsMultiLimitCommuter: Money;
+  /** Costs of a civil contract (zlecenie, dzieło) without author's rights. */
+  civilCostsRate: Bp;
+  /** A civil contract up to this amount with someone who is not the employer: flat 12% tax. */
+  smallContractLimit: Money;
+  /** Annual child relief for the 1st, 2nd, 3rd and every next child (art. 27f ust. 1 pkt 2). */
+  childRelief: Money[];
+  /** Income limit of the relief for one child: married (spouses together) and single parent. */
+  childReliefIncomeLimitMarried: Money;
+  childReliefIncomeLimitSingle: Money;
   /** The items that came from `pending` (shown as "z projektami" on the result). */
   usedPending: ItemKey[];
 }
@@ -147,12 +188,15 @@ const MONEY_KEYS = [
   "minWage", "avgWageForecast", "zusAnnualLimit", "taxReduction", "employeeCosts",
   "employeeCostsCommuter", "authorsCostsLimit", "zeroPitLimit", "preferentialBase", "fullBase",
   "healthMin", "healthMinJanuary", "linearHealthDeductionLimit", "ryczaltHealthAvgWage",
-  "ryczaltLimit", "vatExemptLimit", "smallZusRevenueLimit",
+  "ryczaltLimit", "vatExemptLimit", "smallZusRevenueLimit", "fixedAssetLimit",
+  "employeeCostsMultiLimit", "employeeCostsMultiLimitCommuter", "smallContractLimit",
+  "childReliefIncomeLimitMarried", "childReliefIncomeLimitSingle",
 ] as const;
 const RATE_KEYS = [
   "pensionEmployee", "pensionEmployer", "disabilityEmployee", "disabilityEmployer", "sickness",
   "accident", "laborFund", "fgsp", "health", "ppkEmployee", "ppkEmployer", "healthLinear",
-  "linearRate", "ipBoxRate", "ryczaltItRate", "vatRate",
+  "linearRate", "ipBoxRate", "ryczaltItRate", "vatRate", "carCostShare", "carVatShare",
+  "civilCostsRate",
 ] as const;
 const COUNT_KEYS = [
   "sickPayEmployerDays", "sickPayEmployerDaysOver50", "voluntarySicknessWaitDays",
@@ -161,8 +205,72 @@ const COUNT_KEYS = [
 
 /** Every key a rates file must have - used by the completeness test of the files. */
 export const ITEM_KEYS: readonly ItemKey[] = [
-  ...MONEY_KEYS, ...RATE_KEYS, ...COUNT_KEYS, "pitScale", "ryczaltHealthThresholds",
+  ...MONEY_KEYS, ...RATE_KEYS, ...COUNT_KEYS, "pitScale", "ryczaltHealthThresholds", "childRelief",
 ];
+
+// Checking a rates file that comes from outside (button "Odśwież" downloads it from the repository).
+
+const STATUSES: readonly Status[] = ["pewne", "uchwalone", "projekt", "szacunek", "doniesienie"];
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v >= 0;
+const isText = (v: unknown, max = 2000) => typeof v === "string" && v.length > 0 && v.length <= max;
+const isBracket = (v: unknown) => Array.isArray(v) && v.length === 2 && (v[0] === null || isNum(v[0])) && isNum(v[1]);
+
+function isSource(v: Record<string, unknown>): boolean {
+  return (
+    isText(v.source, 300) &&
+    typeof v.url === "string" &&
+    /^https:\/\/[^\s"<>]+$/.test(v.url) &&
+    v.url.length <= 500 &&
+    typeof v.checked === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(v.checked) &&
+    STATUSES.includes(v.status as Status) &&
+    (v.note === undefined || isText(v.note))
+  );
+}
+
+/** Whether a value has the shape of this number of a rates file (also for values proposed by AI). */
+export function valueOk(key: ItemKey, v: unknown): boolean {
+  if (key === "pitScale") return Array.isArray(v) && v.length > 0 && v.length <= 10 && v.every(isBracket);
+  if (key === "ryczaltHealthThresholds") return Array.isArray(v) && v.length === 2 && v.every(isNum);
+  if (key === "childRelief") return Array.isArray(v) && v.length > 0 && v.length <= 10 && v.every(isNum);
+  return isNum(v);
+}
+
+function itemOk(key: ItemKey, v: unknown, nested = false): boolean {
+  if (!isObj(v) || !isSource(v) || !valueOk(key, v.value)) return false;
+  if (v.pending === undefined) return true;
+  return !nested && itemOk(key, v.pending, true);
+}
+
+/**
+ * The file when it has every number with its value, source, link and check date in the right
+ * shape; `null` otherwise - a broken or tampered file never reaches the calculations.
+ */
+export function parseRatesFile(json: unknown): RatesFile | null {
+  if (!isObj(json) || !Number.isInteger(json.year) || (json.year as number) < 2020 || (json.year as number) > 2100) return null;
+  const items = json.items;
+  if (!isObj(items) || !ITEM_KEYS.every((k) => itemOk(k, items[k]))) return null;
+  const bills = json.bills;
+  if (bills !== undefined) {
+    if (!Array.isArray(bills) || bills.length > 50) return null;
+    const billOk = (b: unknown) => isObj(b) && isSource(b) && isText(b.title, 300) && isText(b.what) && isText(b.from, 200);
+    if (!bills.every(billOk)) return null;
+  }
+  return json as unknown as RatesFile;
+}
+
+/** The latest check date of the file ("YYYY-MM-DD") - which of two files is fresher. */
+export function newestCheck(file: RatesFile): string {
+  const dates: string[] = [];
+  for (const item of Object.values(file.items) as RateItem<unknown>[]) {
+    dates.push(item.checked);
+    if (item.pending) dates.push(item.pending.checked);
+  }
+  for (const b of file.bills ?? []) dates.push(b.checked);
+  dates.sort();
+  return dates[dates.length - 1] ?? "";
+}
 
 function pick<T>(item: RateItem<T>, variant: RulesVariant, key: ItemKey, used: ItemKey[]): T {
   if (variant === "z-projektami" && item.pending) {
@@ -230,6 +338,16 @@ export function loadRates(file: RatesFile, variant: RulesVariant = "pewne"): Rat
     voluntarySicknessWaitDays: count("voluntarySicknessWaitDays"),
     startReliefMonths: count("startReliefMonths"),
     preferentialMonths: count("preferentialMonths"),
+    carCostShare: rate("carCostShare"),
+    carVatShare: rate("carVatShare"),
+    fixedAssetLimit: money("fixedAssetLimit"),
+    employeeCostsMultiLimit: money("employeeCostsMultiLimit"),
+    employeeCostsMultiLimitCommuter: money("employeeCostsMultiLimitCommuter"),
+    civilCostsRate: rate("civilCostsRate"),
+    smallContractLimit: money("smallContractLimit"),
+    childRelief: pick(it.childRelief, variant, "childRelief", used).map(zl),
+    childReliefIncomeLimitMarried: money("childReliefIncomeLimitMarried"),
+    childReliefIncomeLimitSingle: money("childReliefIncomeLimitSingle"),
     usedPending: used,
   };
 }
