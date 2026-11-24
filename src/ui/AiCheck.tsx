@@ -1,16 +1,14 @@
 /**
- * Settings "Sprawdź przepisy z AI" (assumption A4): the API key (kept in the system vault, only its
- * end shown), the daily limit with the spending counter, the check itself and its proposals with
- * "Zastosuj" / "Pomiń", and "Przywróć dane z pliku". In the demo and the browser it only says it
- * works in the app.
+ * The window "Sprawdź przepisy z AI" (assumption A4): the check itself and its proposals with
+ * "Zastosuj" / "Pomiń", and "Przywróć dane z pliku". The key, the daily limit and the spending are
+ * in Settings → AI (AiSettings.tsx); here only today's spending with a way there. The window opens
+ * only with a key saved - without it the button opens Settings → AI.
  */
-import { useEffect, useState } from "react";
-import { DEMO_NOTE, IS_DEMO } from "../demo";
+import { useRef, useState } from "react";
 import type { RatesFile } from "../calc/rates";
 import { changeId, isOfficial, question, readAnswer, systemPrompt, verify, type AiAnswer, type AiChange, type Applied, type Checked } from "../ai/check";
-import { ask, deleteKey, errorText, fetchSource, inApp, keyHint, setKey, type AiError } from "../ai/bridge";
-import { ESTIMATE_USD, canAsk, costUsd, loadSpending, localDay, record, saveSpending, spentToday, usd } from "../ai/spend";
-import { dateShort } from "./format";
+import { ask, errorText, fetchSource, type AiError } from "../ai/bridge";
+import { ESTIMATE_USD, canAsk, costUsd, localDay, record, saveSpending, spentToday, usd, type Spending } from "../ai/spend";
 import Reveal from "./Reveal";
 import type { FxRate, NewAct } from "./refresh";
 import { STATUS_WORDS, itemLabel, valueText } from "./rules";
@@ -22,6 +20,12 @@ interface Props {
   acts: readonly NewAct[];
   applied: readonly Applied[];
   usdRate: FxRate | null;
+  /** Last 4 characters of the saved key; `null` = none (the check cannot run). */
+  hint: string | null;
+  spending: Spending;
+  onSpending: (s: Spending) => void;
+  /** Opens Settings → AI (the key, the limit, the spending). */
+  onSettings: () => void;
   onApply: (a: Applied) => void;
   onRestore: () => void;
 }
@@ -80,60 +84,15 @@ function Proposal({ checked, files, onApply, onSkip }: { checked: Checked; files
   );
 }
 
-export default function AiCheck({ files, acts, applied, usdRate, onApply, onRestore }: Props) {
-  const app = !IS_DEMO && inApp();
-  const [hint, setHint] = useState<string | null>(null);
-  const [keyInput, setKeyInput] = useState("");
-  const [spending, setSpending] = useState(loadSpending);
+export default function AiCheck({ files, acts, applied, usdRate, hint, spending, onSpending, onSettings, onApply, onRestore }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [answer, setAnswer] = useState<AiAnswer | null>(null);
   const [checked, setChecked] = useState<Checked[]>([]);
   const [done, setDone] = useState<Set<string>>(new Set());
   const today = new Date();
-
-  useEffect(() => {
-    if (app) keyHint().then(setHint, (e: AiError) => setError(errorText(e)));
-  }, [app]);
-
-  if (!app) {
-    return (
-      <section className="ai" aria-labelledby="ai-title">
-        <h2 id="ai-title">Sprawdź przepisy z AI</h2>
-        <p>
-          Claude Sonnet z wyszukiwaniem w sieci sprawdza, czy kwoty i daty w kalkulatorze są aktualne, i proponuje zmiany ze źródłem i cytatem. Nic nie
-          zmienia się samo.
-        </p>
-        <p className="ai__note">{IS_DEMO ? DEMO_NOTE : "Działa tylko w aplikacji na komputerze - klucz API jest w sejfie systemu."}</p>
-      </section>
-    );
-  }
-
-  const saveKey = async () => {
-    setError(null);
-    try {
-      setHint(await setKey(keyInput));
-      setKeyInput("");
-    } catch (e) {
-      setError(errorText(e as AiError));
-    }
-  };
-  const removeKey = async () => {
-    setError(null);
-    try {
-      await deleteKey();
-      setHint(null);
-    } catch (e) {
-      setError(errorText(e as AiError));
-    }
-  };
-  const setLimit = (value: string) => {
-    const n = Number(value.replace(",", "."));
-    if (!Number.isFinite(n) || n <= 0 || n > 100) return;
-    const next = { ...spending, limitUsd: n };
-    setSpending(next);
-    saveSpending(next);
-  };
+  const spendingNow = useRef(spending);
+  spendingNow.current = spending;
 
   const check = async () => {
     setError(null);
@@ -144,8 +103,8 @@ export default function AiCheck({ files, acts, applied, usdRate, onApply, onRest
     try {
       const got = await ask(systemPrompt(localDay(today)), question(files, acts));
       // Paid even when the answer turns out refused or broken.
-      const next = record(loadSpending(), costUsd(got), new Date());
-      setSpending(next);
+      const next = record(spendingNow.current, costUsd(got), new Date());
+      onSpending(next);
       saveSpending(next);
       if (got.stopReason === "refusal") throw { kind: "refused", message: "" };
       const read = readAnswer(got.text, files);
@@ -175,39 +134,14 @@ export default function AiCheck({ files, acts, applied, usdRate, onApply, onRest
         obecne stawki i listę nowych aktów - żadnych Twoich kwot. Nic nie zmienia się samo.
       </p>
 
-      <h3>Klucz API Anthropic</h3>
-      {hint ? (
-        <p className="ai__row">
-          Zapisany w sejfie systemu: <span className="amount">{hint}</span>
-          <button type="button" className="ai__plain" onClick={removeKey}>
-            Usuń klucz
-          </button>
-        </p>
-      ) : (
-        <form
-          className="ai__row"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void saveKey();
-          }}
-        >
-          <label htmlFor="ai-key">Klucz (zaczyna się od sk-ant-)</label>
-          <input id="ai-key" type="password" autoComplete="off" spellCheck={false} value={keyInput} onChange={(e) => setKeyInput(e.target.value)} />
-          <button type="submit" className="sources__button" disabled={!keyInput.trim()}>
-            Zapisz w sejfie
-          </button>
-        </form>
-      )}
-
-      <h3>Wydatki</h3>
-      <p>
-        Dziś wydane: <span className="amount">{usd(spent)}</span> z <span className="amount">{usd(spending.limitUsd)}</span>
-        {zlText(spent, usdRate)} - to szacunek liczony przez aplikację
-        {usdRate ? `, kurs NBP z ${dateShort(usdRate.date)}` : ""}.
-      </p>
       <p className="ai__row">
-        <label htmlFor="ai-limit">Dzienny limit w $</label>
-        <input id="ai-limit" type="number" min="0.5" max="100" step="0.5" defaultValue={spending.limitUsd} onBlur={(e) => setLimit(e.target.value)} />
+        <span>
+          Dziś wydane: <span className="amount">{usd(spent)}</span> z <span className="amount">{usd(spending.limitUsd)}</span>
+          {zlText(spent, usdRate)}.
+        </span>
+        <button type="button" className="ai__plain" onClick={onSettings}>
+          Klucz, limit i wydatki - Ustawienia → AI
+        </button>
       </p>
 
       <div className="sources__actions">
@@ -217,7 +151,7 @@ export default function AiCheck({ files, acts, applied, usdRate, onApply, onRest
         <span className="sources__state">
           {busy ??
             (!hint
-              ? "Najpierw zapisz klucz."
+              ? "Najpierw zapisz klucz w Ustawieniach → AI."
               : allowed
                 ? `Koszt jednego sprawdzenia: ok. ${usd(ESTIMATE_USD.low)}-${usd(ESTIMATE_USD.high)}${zlText(ESTIMATE_USD.high, usdRate)}.`
                 : "Dzienny limit wyczerpany - podnieś go albo spróbuj jutro.")}

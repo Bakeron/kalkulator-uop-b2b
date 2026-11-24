@@ -21,7 +21,7 @@ function place(box: HTMLElement): void {
   if (!box.dataset.markReady) requestAnimationFrame(() => (box.dataset.markReady = ""));
 }
 
-function placeAll(): void {
+export function placeAll(): void {
   document.querySelectorAll<HTMLElement>("[data-mark]").forEach(place);
 }
 

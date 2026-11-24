@@ -1,12 +1,10 @@
 /**
  * The "Źródła" tab (assumption A1 "Źródła i Odśwież", A3): every number of the rates file with
- * its source and the date it was checked, the button "Odśwież" (rates file from the repository,
- * new legal acts, NBP rates - public data only) and the licences of the bundled fonts.
+ * its source and the date it was checked, and the new legal acts found by "Odśwież". The button
+ * itself, the NBP rate and the font licences are in Settings (Dane, Waluta, O aplikacji - B4 a).
  */
 import { newestCheck, type RateItem, type RatesFile } from "../calc/rates";
-import { CURRENCY_SIGN } from "./currency";
 import { dateShort, plural } from "./format";
-import FontLicenses from "./FontLicenses";
 import Reveal from "./Reveal";
 import type { Kept } from "./refresh";
 import { checkedText, ITEM_ORDER, itemLabel, STATUS_WORDS, valueText } from "./rules";
@@ -23,12 +21,11 @@ interface Props {
   /** The file came from the repository (newer than the one in the app). */
   fromRepo: boolean;
   kept: Kept;
-  busy: boolean;
-  report: RefreshReport | null;
-  onRefresh: () => void;
+  /** Opens Settings → Dane, where "Odśwież" is. */
+  onSettings: () => void;
 }
 
-const when = (iso: string) => {
+export const when = (iso: string) => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? "" : `${dateShort(iso.slice(0, 10))}, ${d.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}`;
 };
@@ -45,10 +42,9 @@ function Source({ s }: { s: RateItem<unknown> }) {
   );
 }
 
-export default function Sources({ file, fromRepo, kept, busy, report, onRefresh }: Props) {
+export default function Sources({ file, fromRepo, kept, onSettings }: Props) {
   const checked = newestCheck(file);
   const acts = kept.acts.filter((a) => a.published >= checked);
-  const fx = (["EUR", "USD"] as const).flatMap((c) => (kept.fx[c] ? [{ c, r: kept.fx[c]! }] : []));
   return (
     <div className="sources">
       <section className="sources__refresh" aria-labelledby="refresh-title">
@@ -56,27 +52,12 @@ export default function Sources({ file, fromRepo, kept, busy, report, onRefresh 
           Czy dane są aktualne
         </h3>
         <p className="answer__note">
-          Stawki {file.year} roku {fromRepo ? "z repozytorium (nowsze niż w aplikacji)" : "z aplikacji"}, ostatnio sprawdzone{" "}
-          {dateShort(checked)}. „Odśwież” pobiera tylko dane publiczne: plik stawek z repozytorium, nowe akty prawne z API Sejmu i kurs
-          NBP. Twoje kwoty nigdzie nie wychodzą.
-        </p>
-        <p className="sources__actions">
-          <button type="button" className="sources__button" onClick={onRefresh} disabled={busy} aria-describedby="refresh-state">
-            {busy ? "Sprawdzam…" : "Odśwież"}
+          Stawki {file.year} roku {fromRepo ? "z repozytorium (nowsze niż w aplikacji)" : "z aplikacji"}, ostatnio sprawdzone {dateShort(checked)}.{" "}
+          {kept.refreshed ? `Odświeżone na tym urządzeniu: ${when(kept.refreshed)}.` : "Jeszcze nie odświeżane na tym urządzeniu."}{" "}
+          <button type="button" className="link" onClick={onSettings}>
+            Odśwież w Ustawieniach → Dane
           </button>
-          <span id="refresh-state" className="sources__state" role="status">
-            <span key={busy ? "busy" : (kept.refreshed ?? "")} className="fade-in">
-              {busy ? "Pobieram dane…" : kept.refreshed ? `Ostatnio: ${when(kept.refreshed)}` : "Jeszcze nie odświeżane na tym urządzeniu."}
-            </span>
-          </span>
         </p>
-        <Reveal show={report !== null && !busy}>{() => report && (
-          <ul className="sources__report">
-            <li>{report.rates}</li>
-            <li>{report.acts}</li>
-            <li>{report.fx}</li>
-          </ul>
-        )}</Reveal>
         <Reveal show={acts.length > 0}>{() => (
           <div className="sources__acts" role="note">
             <p>
@@ -100,21 +81,6 @@ export default function Sources({ file, fromRepo, kept, busy, report, onRefresh 
               ))}
             </ul>
           </div>
-        )}</Reveal>
-        <Reveal show={fx.length > 0}>{() => (
-          <p className="answer__note">
-            Kurs średni NBP:{" "}
-            {fx.map(({ c, r }, i) => (
-              <span key={c}>
-                {i > 0 && ", "}1 {CURRENCY_SIGN[c]} = {r.mid.toLocaleString("pl-PL", { minimumFractionDigits: 4 })} zł
-              </span>
-            ))}{" "}
-            (tabela {fx[0]!.r.table || "A"} z {dateShort(fx[0]!.r.date)},{" "}
-            <a href="https://nbp.pl/statystyka-i-sprawozdawczosc/kursy/tabela-a/" target="_blank" rel="noreferrer noopener">
-              NBP
-            </a>
-            ).
-          </p>
         )}</Reveal>
       </section>
 
@@ -144,13 +110,6 @@ export default function Sources({ file, fromRepo, kept, busy, report, onRefresh 
             );
           })}
         </ul>
-      </section>
-
-      <section aria-labelledby="fonts-title">
-        <h3 id="fonts-title" className="changes__title">
-          Czcionki
-        </h3>
-        <FontLicenses />
       </section>
     </div>
   );

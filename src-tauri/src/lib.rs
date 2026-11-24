@@ -18,6 +18,7 @@ pub fn run() {
             secrets::ai_key_hint,
             secrets::ai_key_set,
             secrets::ai_key_delete,
+            secrets::ai_key_reveal,
             ai::ai_ask,
             ai::ai_fetch_source,
         ])

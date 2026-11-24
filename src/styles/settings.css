@@ -1,0 +1,390 @@
+/* The window "Ustawienia" (gear in the header, assumption A11, B4 a) - the same drawing sheet as
+   the AI window: a heavy frame, parts on tabs, one height for every part. */
+
+.settings {
+  width: min(48rem, calc(100vw - 2rem));
+  height: min(42rem, calc(100dvh - 2rem));
+  max-height: none;
+  padding: 0;
+  border: 2px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.settings::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+
+/* The window and the dimmed page behind it fade in and out (not at once - assumption A9). */
+.settings,
+.settings::backdrop {
+  opacity: 0;
+  transition:
+    opacity var(--t) var(--ease),
+    transform var(--t) var(--ease),
+    overlay var(--t) allow-discrete,
+    display var(--t) allow-discrete;
+}
+
+.settings {
+  transform: translateY(0.75rem);
+}
+
+.settings[open],
+.settings[open]::backdrop {
+  opacity: 1;
+  transform: none;
+}
+
+@starting-style {
+  .settings[open],
+  .settings[open]::backdrop {
+    opacity: 0;
+  }
+
+  .settings[open] {
+    transform: translateY(0.75rem);
+  }
+}
+
+.settings__sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.settings__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem 0;
+}
+
+.settings__head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.settings__tabs {
+  margin: 0 1.5rem;
+  column-gap: 1.25rem;
+}
+
+.settings__tabs button {
+  font-size: 1rem;
+}
+
+/* Only the part scrolls - the title and the tabs stay. */
+.settings__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  padding: 0.25rem 1.5rem 1.5rem;
+}
+
+/* A new part fades in and comes up a little. */
+.settings__panel {
+  animation: set-in var(--t) var(--ease);
+}
+
+@keyframes set-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+}
+
+.set-group {
+  margin-top: 1rem;
+}
+
+.set-group h3,
+.set-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.set-note,
+.set-state {
+  margin: 0.5rem 0 0;
+  max-width: 62ch;
+}
+
+.set-note {
+  display: block;
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+}
+
+.set-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin: 0;
+}
+
+.set-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.set-check input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  accent-color: var(--ink);
+}
+
+.set-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.set-list li + li {
+  margin-top: 0.35rem;
+}
+
+.settings a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+/* The address as text: where the link does not open, it can be copied. */
+.set-url {
+  display: block;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+/* ---- Settings → AI ---- */
+
+.set-card {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem 1rem;
+  border: 1px solid var(--line);
+}
+
+.set-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+/* "Płatne za zużycie": a stamp-like label - words, not colour alone. */
+.set-card__tag {
+  padding: 0.05rem 0.5rem;
+  border: 1px dashed var(--ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.set-facts {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.5rem 0 0;
+}
+
+.set-facts dt {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.set-facts dd {
+  margin: 0;
+  max-width: 62ch;
+}
+
+.set-demo {
+  margin: 1rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px dashed var(--ink);
+  font-weight: 700;
+}
+
+.set-how {
+  margin-top: 1rem;
+}
+
+.set-how summary {
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.set-how ol {
+  margin: 0.5rem 0 0;
+  padding-left: 1.5rem;
+}
+
+.set-how li + li {
+  margin-top: 0.5rem;
+}
+
+.set-how__link {
+  display: block;
+  margin-top: 0.15rem;
+}
+
+.set-key {
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  margin-inline: -0.75rem;
+  outline: 2px dashed transparent;
+  outline-offset: -2px;
+  transition: outline-color var(--t) var(--ease);
+}
+
+/* Opened by "Sprawdź przepisy z AI" without a key: the field to fill is framed in red. */
+.set-key--wanted {
+  outline-color: var(--red);
+}
+
+.set-key__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+.set-key__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.set-key__row input {
+  flex: 1 1 14rem;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  background: var(--slide);
+  color: var(--ink);
+  font: inherit;
+}
+
+.set-field {
+  display: grid;
+  justify-items: start;
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.set-field__label {
+  font-weight: 700;
+}
+
+.set-field input {
+  min-height: 44px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  background: var(--slide);
+  color: var(--ink);
+  font: inherit;
+}
+
+.set-field__money {
+  width: 8rem;
+}
+
+.set-field input[aria-invalid="true"] {
+  border: 2px solid var(--red);
+}
+
+.set-warn {
+  margin: 0.5rem 0 0;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--red);
+  font-weight: 700;
+}
+
+.settings input:disabled,
+.settings button:disabled {
+  cursor: not-allowed;
+}
+
+.settings input:focus-visible,
+.settings summary:focus-visible,
+.settings .link:focus-visible,
+.settings .ai__plain:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+/* A phone: the window takes the whole screen. */
+@media (max-width: 600px) {
+  .settings {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    border: 0;
+  }
+
+  .settings__head,
+  .settings__body {
+    padding-inline: 1rem;
+  }
+
+  .settings__tabs {
+    margin: 0 1rem;
+  }
+}
+
+/* ---- The header: "Sprawdź przepisy z AI" and the gear "Ustawienia" ---- */
+
+.top__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.set-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: box-shadow var(--t) var(--ease);
+}
+
+.set-open:hover {
+  box-shadow: inset 0 -3px 0 var(--ink);
+}
+
+.set-open:focus-visible,
+.ai-open:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.set-open svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  transition: transform calc(var(--t) * 2) var(--ease);
+}
+
+/* The gear turns a little under the pointer. */
+.set-open:hover svg {
+  transform: rotate(45deg);
+}

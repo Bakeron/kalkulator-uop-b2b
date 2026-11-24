@@ -53,15 +53,23 @@ export function costUsd(u: Usage): number {
 /** What one check is expected to cost before it is asked (assumption A3: about 0.2-0.4 $). */
 export const ESTIMATE_USD = { low: 0.2, high: 0.4 };
 
-/** Kept on the device: dollars spent per local day ("YYYY-MM-DD") and the daily limit. */
+/**
+ * Kept on the device: dollars spent per local day ("YYYY-MM-DD"), the daily limit and the last
+ * top-up of the Claude account (Settings → AI), so the app can say roughly what is left of it.
+ */
 export interface Spending {
   days: Record<string, number>;
   limitUsd: number;
+  /** The last top-up in dollars and its day; `null` = not given. */
+  topUpUsd: number | null;
+  topUpDay: string | null;
 }
 
 export const DEFAULT_LIMIT_USD = 1;
 const KEY = "aiSpending";
-const KEEP_DAYS = 62;
+/** A little over a year - enough to count what was spent since a top-up. */
+const KEEP_DAYS = 400;
+const MAX_TOP_UP = 10_000;
 
 export function localDay(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -70,10 +78,12 @@ export function localDay(d: Date): string {
 
 /** Checked again on reading - local storage can be edited by hand. */
 export function parseSpending(raw: unknown): Spending {
-  const out: Spending = { days: {}, limitUsd: DEFAULT_LIMIT_USD };
+  const out: Spending = { days: {}, limitUsd: DEFAULT_LIMIT_USD, topUpUsd: null, topUpDay: null };
   if (typeof raw !== "object" || raw === null) return out;
   const r = raw as Partial<Spending>;
   if (typeof r.limitUsd === "number" && Number.isFinite(r.limitUsd) && r.limitUsd > 0 && r.limitUsd <= 100) out.limitUsd = r.limitUsd;
+  if (typeof r.topUpUsd === "number" && Number.isFinite(r.topUpUsd) && r.topUpUsd > 0 && r.topUpUsd <= MAX_TOP_UP) out.topUpUsd = r.topUpUsd;
+  if (out.topUpUsd !== null && typeof r.topUpDay === "string" && /^\d{4}-\d{2}-\d{2}$/.test(r.topUpDay)) out.topUpDay = r.topUpDay;
   if (typeof r.days === "object" && r.days !== null) {
     for (const [day, usd] of Object.entries(r.days)) {
       if (/^\d{4}-\d{2}-\d{2}$/.test(day) && typeof usd === "number" && Number.isFinite(usd) && usd >= 0) out.days[day] = usd;
@@ -98,7 +108,7 @@ export function saveSpending(s: Spending, storage: Pick<Storage, "setItem"> = lo
   }
 }
 
-/** Adds one check to its day; days older than two months are dropped. */
+/** Adds one check to its day; days older than a year are dropped. */
 export function record(s: Spending, usd: number, today: Date): Spending {
   const day = localDay(today);
   const oldest = localDay(new Date(today.getFullYear(), today.getMonth(), today.getDate() - KEEP_DAYS));
@@ -109,6 +119,34 @@ export function record(s: Spending, usd: number, today: Date): Spending {
 }
 
 export const spentToday = (s: Spending, today: Date) => s.days[localDay(today)] ?? 0;
+
+/** This month, from its first day until today. */
+export function spentMonth(s: Spending, today: Date): number {
+  const month = localDay(today).slice(0, 7);
+  return Object.entries(s.days).reduce((sum, [d, v]) => (d.startsWith(month) ? sum + v : sum), 0);
+}
+
+/** Since the day of the last top-up (that day included); `null` without a top-up. */
+export function sinceTopUp(s: Spending): { spent: number; left: number; low: boolean } | null {
+  if (s.topUpUsd === null || s.topUpDay === null) return null;
+  const day = s.topUpDay;
+  const spent = Object.entries(s.days).reduce((sum, [d, v]) => (d >= day ? sum + v : sum), 0);
+  const left = Math.max(0, s.topUpUsd - spent);
+  // Below 10% of the top-up: time to top up before Claude stops answering.
+  return { spent, left, low: left < s.topUpUsd * 0.1 };
+}
+
+/**
+ * A dollar amount typed by the user ("5", "20,50", "$ 5", "5 USD"): `null` when it is not one,
+ * `""` for an empty field (no amount).
+ */
+export function dollarsTyped(text: string, max = MAX_TOP_UP): number | "" | null {
+  const t = text.replace(/\$|usd/gi, "").replace(/\s/g, "").replace(",", ".");
+  if (t === "") return "";
+  if (!/^\d+(\.\d{1,2})?$/.test(t)) return null;
+  const n = Number(t);
+  return n > 0 && n <= max ? n : null;
+}
 
 /** Another check fits in today's limit only when even its expensive end does. */
 export const canAsk = (s: Spending, today: Date) => spentToday(s, today) + ESTIMATE_USD.high <= s.limitUsd;

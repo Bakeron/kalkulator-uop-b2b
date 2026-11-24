@@ -3,20 +3,22 @@
  * A8): the answer in sentences first, the slide rule under it, then "skąd ta kwota" for both
  * contracts; the two amounts and the assumptions on the side.
  */
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { IS_DEMO } from "./demo";
 import type { TaxForm } from "./calc/b2b";
 import type { Money } from "./calc/money";
 import { newestCheck, parseRatesFile } from "./calc/rates";
 import { applyAll, changeId, loadApplied, saveApplied, type Applied } from "./ai/check";
+import { errorText, inApp, keyHint, type AiError } from "./ai/bridge";
+import { loadSpending } from "./ai/spend";
 import AiCheck from "./ui/AiCheck";
 import { onBack } from "./ui/back";
 import { SICK_PERCENT } from "./calc/uop";
 import Assumptions, { assumptionSentences } from "./ui/Assumptions";
 import Breakdown from "./ui/Breakdown";
 import FirstSteps from "./ui/FirstSteps";
-import { CURRENCY_NAME, CURRENCY_SIGN, MoneyContext, fromForeign, rateNote, resultMoney, toForeign } from "./ui/currency";
+import { CURRENCY_SIGN, MoneyContext, fromForeign, rateNote, resultMoney, toForeign } from "./ui/currency";
 import Hint, { type HintText } from "./ui/Hint";
 import { MAIN_HINTS } from "./ui/hints";
 import Knowledge from "./ui/Knowledge";
@@ -33,7 +35,9 @@ import Rolling from "./ui/Rolling";
 import { RATES_FILES, fileOn, ratesFor, rulesOptions, upcomingChanges, type RulesOption } from "./ui/rules";
 import { fromLink, loadLast, loadSaved, saveLast, shareLink, storeSaved, withSaved, type SavedScenario } from "./ui/saved";
 import Scenarios from "./ui/Scenarios";
+import Settings, { type Section, type SettingsOpen, type Theme } from "./ui/Settings";
 import SlideRule from "./ui/SlideRule";
+import Tabs from "./ui/Tabs";
 import Sources, { type RefreshReport } from "./ui/Sources";
 import { useCalculation } from "./ui/useCalculation";
 import UpcomingChanges from "./ui/UpcomingChanges";
@@ -44,9 +48,6 @@ function formLong(form: TaxForm, ryczaltRate: number | null): string {
   if (form === "ryczalt") return `na ryczałcie ${((ryczaltRate ?? 1200) / 100).toLocaleString("pl-PL")}%`;
   return { skala: "na skali podatkowej", liniowy: "na podatku liniowym", ipbox: "z IP Box" }[form];
 }
-
-type Theme = "system" | "light" | "dark";
-const THEME_NAME: Record<Theme, string> = { light: "Jasny", dark: "Ciemny", system: "Jak w systemie" };
 
 function useTheme(): [Theme, (t: Theme) => void] {
   const [theme, setTheme] = useState<Theme>(() => (IS_DEMO ? null : (localStorage.getItem("theme") as Theme | null)) ?? "system");
@@ -211,52 +212,6 @@ function useNarrow(): boolean {
   return narrow;
 }
 
-/** A row of tabs (WAI-ARIA tabs: arrows, Home and End move between them). */
-function Tabs<K extends string>({
-  items,
-  chosen,
-  onChange,
-  label,
-  prefix,
-  className,
-}: {
-  items: readonly { key: K; label: string }[];
-  chosen: K;
-  onChange: (k: K) => void;
-  label: string;
-  prefix: string;
-  className: string;
-}) {
-  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
-    const i = items.findIndex((t) => t.key === chosen);
-    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: items.length - 1 }[e.key];
-    if (next === undefined) return;
-    e.preventDefault();
-    const t = items[(next + items.length) % items.length]!;
-    onChange(t.key);
-    document.getElementById(`${prefix}-${t.key}`)?.focus();
-  };
-  return (
-    <div className={className} role="tablist" aria-label={label} onKeyDown={onKey} data-mark='[aria-selected="true"]'>
-      {items.map((t) => (
-        <button
-          key={t.key}
-          id={`${prefix}-${t.key}`}
-          type="button"
-          role="tab"
-          aria-selected={t.key === chosen}
-          aria-controls={`panel-${t.key}`}
-          tabIndex={t.key === chosen ? 0 : -1}
-          onClick={() => onChange(t.key)}
-          data-text={t.label}
-        >
-          {t.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export default function App() {
   const [scenario, setScenario] = useState<Scenario>(() => FROM_LINK?.scenario ?? loadLast());
   useEffect(() => saveLast(scenario), [scenario]);
@@ -308,6 +263,17 @@ export default function App() {
   const [applied, setApplied] = useState<Applied[]>(() => (IS_DEMO ? [] : loadApplied(RATES_FILES)));
   const aiDialog = useRef<HTMLDialogElement>(null);
   const aiBack = useRef<(() => void) | null>(null);
+  // The window "Ustawienia" (gear in the header) and what Settings → AI shares with the AI window.
+  const [settingsOpen, setSettingsOpen] = useState<SettingsOpen | null>(null);
+  const openSettings = (section: Section, wantKey = false) => setSettingsOpen({ section, wantKey });
+  const closeSettings = useCallback(() => setSettingsOpen(null), []);
+  const app = !IS_DEMO && inApp();
+  const [aiKey, setAiKey] = useState<string | null>(null);
+  const [aiKeyError, setAiKeyError] = useState<string | null>(null);
+  useEffect(() => {
+    if (app) keyHint().then(setAiKey, (e: AiError) => setAiKeyError(errorText(e)));
+  }, [app]);
+  const [spending, setSpending] = useState(loadSpending);
   // Back from any other view or part goes to "Porównanie" - "Wynik" first.
   useEffect(() => (home ? undefined : onBack(() => goRef.current("compare", "wynik"))), [home]);
   const { files, options, now: nowFile, next: nextFile, changes } = useRules(kept.files, applied);
@@ -712,7 +678,7 @@ export default function App() {
         <h2 id="answer" className="answer">
           Źródła
         </h2>
-        <Sources file={shownFile} fromRepo={kept.files.includes(shownFile)} kept={kept} busy={refreshing} report={report} onRefresh={() => void refresh()} />
+        <Sources file={shownFile} fromRepo={kept.files.includes(shownFile)} kept={kept} onSettings={() => openSettings("data")} />
       </div>
     ) : null;
 
@@ -721,38 +687,14 @@ export default function App() {
     <div className="page">
       <header className="top">
         <p className="top__name">Kalkulator UoP i B2B</p>
-        <fieldset className="theme theme--currency" data-mark="input:checked + span">
-          <legend className="sr-only">Waluta wyników</legend>
-          <span className="theme__lead" aria-hidden="true">
-            Wyniki w
-          </span>
-          {CURRENCIES.map((c) => (
-            <label key={c}>
-              <input type="radio" name="currency" checked={currency === c} onChange={() => smoothly(() => flushSync(() => setCurrency(c)))} />
-              <span title={CURRENCY_NAME[c]} data-text={CURRENCY_SIGN[c]}>
-                {CURRENCY_SIGN[c]}
-              </span>
-            </label>
-          ))}
-        </fieldset>
-        <fieldset className="theme" data-mark="input:checked + span">
-          <legend className="sr-only">Wygląd</legend>
-          {(["light", "dark", "system"] as const).map((t) => (
-            <label key={t}>
-              <input type="radio" name="theme" checked={theme === t} onChange={() => setTheme(t)} />
-              <span data-text={THEME_NAME[t]}>{THEME_NAME[t]}</span>
-            </label>
-          ))}
-        </fieldset>
-        <label className="theme theme--motion">
-          <input type="checkbox" checked={still} onChange={(e) => setStill(e.target.checked)} />
-          <span data-text="Ogranicz animacje">Ogranicz animacje</span>
-        </label>
+        <div className="top__actions">
         <button
           type="button"
           className="ai-open"
           aria-haspopup="dialog"
           onClick={() => {
+            // Without a key the check cannot run - Settings → AI shows where to put it.
+            if (!aiKey) return openSettings("ai", true);
             aiDialog.current?.showModal();
             aiBack.current = onBack(() => {
               aiBack.current = null;
@@ -762,6 +704,11 @@ export default function App() {
         >
           Sprawdź przepisy z AI
         </button>
+        <button type="button" className="set-open" aria-haspopup="dialog" onClick={() => openSettings("look")}>
+          <Gear />
+          Ustawienia
+        </button>
+        </div>
         <dialog
           ref={aiDialog}
           className="ai-dialog"
@@ -781,6 +728,13 @@ export default function App() {
             acts={kept.acts}
             applied={applied}
             usdRate={kept.fx.USD ?? null}
+            hint={aiKey}
+            spending={spending}
+            onSpending={setSpending}
+            onSettings={() => {
+              aiDialog.current?.close();
+              openSettings("ai");
+            }}
             onApply={(a) =>
               setApplied((list) => {
                 const next = [...list.filter((x) => changeId(x.change) !== changeId(a.change)), a];
@@ -794,6 +748,30 @@ export default function App() {
             }}
           />
         </dialog>
+        <Settings
+          open={settingsOpen}
+          onSection={(section) => setSettingsOpen((o) => (o ? { section, wantKey: false } : o))}
+          onClose={closeSettings}
+          theme={theme}
+          onTheme={setTheme}
+          still={still}
+          onStill={setStill}
+          currency={currency}
+          onCurrency={setCurrency}
+          kept={kept}
+          busy={refreshing}
+          report={report}
+          onRefresh={() => void refresh()}
+          app={app}
+          keyHint={aiKey}
+          keyError={aiKeyError}
+          onKeyHint={(h) => {
+            setAiKey(h);
+            setAiKeyError(null);
+          }}
+          spending={spending}
+          onSpending={setSpending}
+        />
       </header>
 
       <main className="layout">
@@ -846,6 +824,20 @@ export default function App() {
       <FirstSteps linksIn={footSlot} />
     </div>
     </MoneyContext.Provider>
+  );
+}
+
+/** The gear of "Ustawienia", drawn with a thin line like the rest of the drawing. */
+function Gear() {
+  const teeth = Array.from({ length: 8 }, (_, i) => i * 45);
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square">
+      <circle cx="12" cy="12" r="6.5" />
+      <circle cx="12" cy="12" r="2.5" />
+      {teeth.map((deg) => (
+        <line key={deg} x1="12" y1="2.5" x2="12" y2="5.5" transform={`rotate(${deg} 12 12)`} />
+      ))}
+    </svg>
   );
 }
 

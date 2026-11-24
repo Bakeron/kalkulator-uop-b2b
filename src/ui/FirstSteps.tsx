@@ -52,6 +52,9 @@ export const STEPS: readonly Step[] = [
 ];
 
 const SEEN_KEY = "firstSteps";
+const SHOW_EVENT = "first-steps";
+/** "Pokaż pierwsze kroki" from anywhere else (Settings → O aplikacji). */
+export const showFirstSteps = () => dispatchEvent(new Event(SHOW_EVENT));
 /** The full guide: next to the demo it is a file of the same site, the desktop app opens it online. */
 export const GUIDE_URL = IS_DEMO ? "instrukcja/" : "https://szymonbakonis.pl/kalkulator-uop-b2b/instrukcja/";
 
@@ -162,6 +165,11 @@ export default function FirstSteps({ linksIn }: { linksIn: Element | null }) {
   }, []);
   const closeRef = useRef(close);
   closeRef.current = close;
+
+  useEffect(() => {
+    addEventListener(SHOW_EVENT, open);
+    return () => removeEventListener(SHOW_EVENT, open);
+  }, [open]);
 
   // The first start: once the fonts are in, so the frames do not point at a moving layout.
   useEffect(() => {

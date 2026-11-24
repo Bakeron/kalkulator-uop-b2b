@@ -228,11 +228,6 @@ input {
   font-weight: 700;
 }
 
-/* The single "Ogranicz animacje" key has no sliding mark - its line fades in and out. */
-.theme--motion input:checked + span {
-  box-shadow: inset 0 -3px 0 var(--ink);
-}
-
 .theme input:focus-visible + span {
   outline: 2px solid var(--red);
   outline-offset: 2px;
@@ -1778,37 +1773,6 @@ legend .hint__btn {
   }
 }
 
-.font-licences {
-  margin-top: 0.75rem;
-}
-
-.font-licences summary {
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.font-licences ul {
-  margin: 0.5rem 0 0;
-  padding-left: 1.25rem;
-}
-
-.font-licences li + li {
-  margin-top: 0.35rem;
-}
-
-.font-licences a {
-  color: inherit;
-  text-underline-offset: 3px;
-}
-
-/* The address as text: where the link does not open, it can be copied. */
-.font-licences__url {
-  display: block;
-  overflow-wrap: anywhere;
-  user-select: all;
-}
-
 .dock {
   display: none;
 }
@@ -2064,24 +2028,6 @@ legend .hint__btn {
   .known .rules__switch span {
     margin: 0 0 -1px -1px;
   }
-}
-
-/* Currency of the results: the same keys as the theme switch, with a word in front. */
-.theme--currency {
-  margin-left: auto;
-  align-items: center;
-}
-
-.theme .theme__lead {
-  padding: 0 0.5rem 0 0;
-  border: 0;
-  margin: 0;
-}
-
-/* "Ogranicz animacje": one key in the same style, pressed = animations off. */
-.theme--motion {
-  position: relative;
-  cursor: pointer;
 }
 
 /* The B2B rate in złoty, euro or dollars: the unit becomes a quiet select. */

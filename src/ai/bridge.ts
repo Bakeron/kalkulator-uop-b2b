@@ -1,6 +1,6 @@
 /**
  * Calls to the Rust side of "Sprawdź przepisy z AI". The API key stays there (system vault) -
- * the page gets only its last 4 characters. Outside the desktop app (browser, demo) nothing is
+ * the page gets its last 4 characters, and the whole key only on "Pokaż klucz" (not kept). Outside the desktop app (browser, demo) nothing is
  * called.
  */
 import { invoke, isTauri } from "@tauri-apps/api/core";
@@ -36,6 +36,7 @@ async function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T> 
 export const keyHint = () => call<string | null>("ai_key_hint");
 export const setKey = (value: string) => call<string>("ai_key_set", { value });
 export const deleteKey = () => call<void>("ai_key_delete");
+export const revealKey = () => call<string | null>("ai_key_reveal");
 export const ask = (system: string, question: string) => call<AskAnswer>("ai_ask", { system, question });
 
 export async function fetchSource(url: string): Promise<SourcePage> {
@@ -51,7 +52,7 @@ export async function fetchSource(url: string): Promise<SourcePage> {
 export function errorText(e: AiError): string {
   switch (e.kind) {
     case "nokey":
-      return "Brak klucza API - wklej go wyżej.";
+      return "Brak klucza API - wklej go w Ustawienia → AI.";
     case "key":
       return "Klucz API nie działa (zły, wyłączony albo usunięty). Sprawdź go na console.anthropic.com i wklej ponownie.";
     case "funds":

@@ -1,6 +1,6 @@
 // The look check (plan A17, assumption A7): opens the app in Chrome (Playwright), goes through
 // every tab in the light and the dark theme with all assumption groups unfolded, one "?" hint
-// and the AI window open, and checks the computed styles for:
+// the AI window and every part of the Settings window open, and checks the computed styles for:
 //  - the "looks like AI" patterns from the ban list - a coloured stripe on the side of a block,
 //    gradient text, gradients (the hatching of a section is a repeating gradient and allowed),
 //    glass (backdrop-filter), soft shadows and glows, blur, tilted elements, violet-indigo colours,
@@ -17,6 +17,8 @@ const CHROME = process.env.CHROME_PATH ?? "C:/Program Files/Google/Chrome/Applic
 const TABS = ["Porównanie", "Rok", "Co warto wiedzieć", "Źródła"];
 /** The parts of "Porównanie" (plan A27); on a phone "Założenia" is one more tab, on the bar at the bottom. */
 const PARTS = ["Wynik", "Skąd te kwoty", "Przy innej stawce", "Miesiąc po miesiącu"];
+/** The parts of the window "Ustawienia" (A28). */
+const SETTINGS = ["Wygląd", "Waluta", "Dane", "AI", "O aplikacji"];
 const tabsAt = (width) => (width <= 900 ? ["Porównanie", "Założenia", ...TABS.slice(1)] : TABS);
 
 /** An application window (plan A27): the window itself never scrolls, only areas inside it. */
@@ -173,8 +175,20 @@ async function motionCheck() {
     await moves("części Porównania - z drugą zakładką", () => page.getByRole("tab", { name: "Rok", exact: true }).click());
     await moves("części Porównania - powrót", () => page.getByRole("tab", { name: "Porównanie", exact: true }).click());
     for (const p of [...PARTS.slice(1), PARTS[0]]) await moves(`część ${p}`, () => page.getByRole("tab", { name: p, exact: true }).click());
-    for (const sign of ["€", "zł"]) await moves(`waluta ${sign}`, () => page.locator(".theme--currency label", { hasText: sign }).click());
-    for (const theme of ["Ciemny", "Jasny"]) await moves(`motyw ${theme}`, () => page.locator(".theme label", { hasText: theme }).click());
+    // The window "Ustawienia" (A28): opening, every part, the switches in it, Esc and "Zamknij".
+    const settings = page.locator("dialog.settings");
+    await moves("Ustawienia - otwarcie", () => page.getByRole("button", { name: "Ustawienia" }).click());
+    for (const theme of ["Ciemny", "Jasny"]) await moves(`motyw ${theme}`, () => settings.locator(".theme label", { hasText: theme }).click());
+    for (const part of [...SETTINGS.slice(1), SETTINGS[0]]) await moves(`Ustawienia - ${part}`, () => settings.getByRole("tab", { name: part, exact: true }).click());
+    await settings.getByRole("tab", { name: "Waluta", exact: true }).click();
+    for (const sign of ["€", "zł"]) await moves(`waluta ${sign}`, () => settings.locator(".theme label", { hasText: sign }).click());
+    await moves("Ustawienia - Esc", () => page.keyboard.press("Escape"));
+    await still();
+    if (await settings.isVisible()) found.push("Ustawienia: Esc nie zamyka okna");
+    await moves("Sprawdź z AI bez klucza", () => page.getByRole("button", { name: "Sprawdź przepisy z AI" }).click());
+    if (!(await settings.getByRole("tab", { name: "AI", exact: true }).getAttribute("aria-selected"))?.includes("true"))
+      found.push("Sprawdź przepisy z AI bez klucza nie otwiera Ustawienia → AI");
+    await moves("Ustawienia - Zamknij", () => settings.getByRole("button", { name: "Zamknij" }).click());
     const rules = page.locator(".rules__switch label");
     if ((await rules.count()) > 1) {
       await moves("przepisy od 1.01", () => rules.nth(1).click());
@@ -213,8 +227,9 @@ async function motionCheck() {
     const open = heights[heights.length - 1];
     if (!heights.some((h) => Math.abs(h - closed) > 1 && Math.abs(h - open) > 1)) found.push("ruch: „tabela pod wykresem” zmienia się od razu, bez animacji");
     await page.getByRole("tab", { name: "Wynik", exact: true }).click();
-    await moves("okno AI - otwarcie", () => page.getByRole("button", { name: "Sprawdź przepisy z AI" }).click());
-    await moves("okno AI - zamknięcie", () => page.locator(".ai-dialog .ai__plain").click());
+    // Without a key (the browser has none) the AI window opens only from the page itself.
+    await moves("okno AI - otwarcie", () => page.evaluate(() => document.querySelector(".ai-dialog").showModal()));
+    await moves("okno AI - zamknięcie", () => page.locator(".ai-dialog .ai__plain").first().click());
     await moves("dymek „?”", () => page.locator(".hint__btn").first().click());
   } finally {
     await page.close();
@@ -253,6 +268,12 @@ async function phoneCheck() {
     if (!(await page.locator(".dock").isVisible())) found.push("telefon: w części bez wyniku nie widać wyniku na dole");
     await moves("Wstecz z części", () => page.goBack());
     if (!(await page.locator("#panel-wynik").isVisible())) found.push("telefon: Wstecz z części nie wraca do „Wynik”");
+    await moves("Ustawienia - otwarcie", () => page.getByRole("button", { name: "Ustawienia" }).click());
+    found.push(...(await windowStill(page, "telefon z oknem Ustawień")));
+    await moves("Ustawienia - Wstecz", () => page.goBack());
+    await still();
+    if (await page.locator("dialog.settings").isVisible()) found.push("telefon: Wstecz nie zamyka okna Ustawień");
+    if (!(await page.locator("#panel-wynik").isVisible())) found.push("telefon: Wstecz z Ustawień zmienia ekran pod spodem");
     found.push(...(await windowStill(page, "telefon po Wstecz")));
   } finally {
     await page.close();
@@ -370,8 +391,18 @@ try {
     await page.locator(".hint__btn").first().click();
     problems.push(...(await page.evaluate(inspect, `${theme} ${width}px / dymek „?”`)));
     await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "Sprawdź przepisy z AI" }).click();
+    await page.evaluate(() => document.querySelector(".ai-dialog").showModal());
     problems.push(...(await page.evaluate(inspect, `${theme} ${width}px / okno AI`)));
+    await page.locator(".ai-dialog .ai__plain").first().click();
+    // Settings (A28): opened by "Sprawdź przepisy z AI" without a key - on its part "AI" - then every part.
+    await page.getByRole("button", { name: "Sprawdź przepisy z AI" }).click();
+    const settings = page.locator("dialog.settings");
+    await settings.locator(".set-ai").waitFor();
+    for (const name of SETTINGS) {
+      await settings.getByRole("tab", { name, exact: true }).click();
+      await page.waitForTimeout(150);
+      problems.push(...(await page.evaluate(inspect, `${theme} ${width}px / Ustawienia - ${name}`)));
+    }
     await page.close();
   }
   problems.push(...(await motionCheck()));

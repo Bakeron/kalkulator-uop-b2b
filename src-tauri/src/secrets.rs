@@ -1,6 +1,7 @@
 //! The Anthropic API key lives only in the OS credential store - Windows Credential Manager on
 //! the PC, Android Keystore on the phone. It never goes to a file, local storage, logs or the
-//! web view: the page only ever sees the last 4 characters.
+//! web view's storage: the page sees the last 4 characters, and the whole key only for a moment
+//! after "Pokaż klucz" in Settings → AI (as in Tablica Ofert), never kept there.
 
 use crate::ai::AiError;
 
@@ -67,6 +68,12 @@ pub fn ai_key_set(value: String) -> Result<String, AiError> {
     let key = clean(&value)?;
     entry()?.set_password(&key).map_err(vault_error)?;
     Ok(hint(&key))
+}
+
+/// "Pokaż klucz": the saved key, read from the vault only on that click.
+#[tauri::command]
+pub fn ai_key_reveal() -> Result<Option<String>, AiError> {
+    get()
 }
 
 #[tauri::command]
